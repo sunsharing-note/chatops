@@ -1,6 +1,7 @@
 package main
 
 import (
+	"code.rookieops.com/coolops/chatops/adapter/dingding"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
@@ -50,41 +51,45 @@ func signature(ts int64, secret string) string {
 
 func main() {
 	g := gin.Default()
-	g.POST("/ding/", func(c *gin.Context) {
-		// 获取body里的请求参数
-		//fmt.Println(c.Request.Header)
-		HttpSign := c.Request.Header.Get("Sign")
-		HttpTimestamp := c.Request.Header.Get("Timestamp")
-
-		// timestamp 与系统当前时间戳如果相差1小时以上，则认为是非法的请求。
-		tsi, err := strconv.ParseInt(HttpTimestamp, 10, 64)
-		if err != nil {
-			log.Printf("请求头可能未附加时间戳信息!!")
-		}
-
-		data, _ := ioutil.ReadAll(c.Request.Body)
-		fmt.Println("---body/--- \r\n "+string(data))
-
-		sign := signature(tsi,appSecret)
-
-		// 校验成功
-		if HttpSign == sign{
-			//
-			var body incoming
-			err := json.Unmarshal(data, &body)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			content := body.Text.Content
-			fmt.Println(content)
-			sendMsgToDingtalk(content)
-		}
-
-		c.JSON(200, gin.H{
-			"msgtype": "text",
-			"text": `{"content": "谢谢使用此机器人}`,
-		})
-	})
+	g.POST("/ding/", dingtalk)
 	_ = g.Run(":9999")
+}
+
+func dingtalk(c *gin.Context){
+	// 获取body里的请求参数
+	//fmt.Println(c.Request.Header)
+	HttpSign := c.Request.Header.Get("Sign")
+	HttpTimestamp := c.Request.Header.Get("Timestamp")
+
+	// timestamp 与系统当前时间戳如果相差1小时以上，则认为是非法的请求。
+	tsi, err := strconv.ParseInt(HttpTimestamp, 10, 64)
+	if err != nil {
+		log.Printf("请求头可能未附加时间戳信息!!")
+	}
+
+	data, _ := ioutil.ReadAll(c.Request.Body)
+	fmt.Println("---body/--- \r\n "+string(data))
+
+	sign := signature(tsi,appSecret)
+
+	// 校验成功
+	if HttpSign == sign{
+		//
+		var body incoming
+		err := json.Unmarshal(data, &body)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		content := body.Text.Content
+		// 起一个协程去执行任务
+		//go process()
+		fmt.Println(content)
+		dingding.SendMsgToDingtalk(content)
+	}
+
+	c.JSON(200, gin.H{
+		"msgtype": "text",
+		"text": `{"content": "谢谢使用此机器人}`,
+	})
 }
