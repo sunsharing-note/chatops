@@ -9,7 +9,7 @@ import (
 
 //var baseHookUrl = "https://oapi.dingtalk.com/robot/send?access_token=61f0415bbdd8c05317a086a63b042c154ca22ddee6ffd0915d67c20e9040e1ae"
 
-func SendMsgToDingtalk(msg string){
+func sendMsgToDingTalk(msg string){
 	//请求地址模板
 	webHook := `https://oapi.dingtalk.com/robot/send?access_token=61f0415bbdd8c05317a086a63b042c154ca22ddee6ffd0915d67c20e9040e1ae`
 	content := `{"msgtype": "text",
