@@ -1,2 +1,9 @@
-ACCESS_TOKEN="xxxx"
-APP_SECRET="xxxx"
+adapter:
+  adapter_name: dingding
+
+dingding:
+  app_secret: "gWs8GFmPZzZmCMeRtbLKaCzor8tzJoyp4QKogD5WOVFt2Dk7UK-K5WcNgZaR3Pq2"
+  access_token: "61f0415bbdd8c05317a086a63b042c154ca22ddee6ffd0915d67c20e9040e1ae"
+
+wechat:
+  app_secret: "xxxxx"
