@@ -1,22 +1,28 @@
 package dingding
 
 import (
+	"bytes"
+	"code.rookieops.com/coolops/chatops/config"
+	"encoding/json"
 	"net/http"
-	"strings"
+	"net/url"
 )
 
 // 向钉钉发消息
 
-//var baseHookUrl = "https://oapi.dingtalk.com/robot/send?access_token=61f0415bbdd8c05317a086a63b042c154ca22ddee6ffd0915d67c20e9040e1ae"
+var baseHookUrl = "https://oapi.dingtalk.com/robot/send"
 
-func sendMsgToDingTalk(msg string){
+func sendMsgToDingTalk(title,msg string){
 	//请求地址模板
-	webHook := `https://oapi.dingtalk.com/robot/send?access_token=61f0415bbdd8c05317a086a63b042c154ca22ddee6ffd0915d67c20e9040e1ae`
-	content := `{"msgtype": "text",
-		"text": {"content": "`+ msg + `"}
-	}`
+	accessToekn := config.Setting.DingDing.AccessToken
+	query := url.Values{}
+	query.Set("access_token",accessToekn)
+	hookUrl, _ := url.Parse(baseHookUrl)
+	hookUrl.RawQuery = query.Encode()
+	message := buildMessage(title, msg)
+	msgContent,_ := json.Marshal(message)
 	//创建一个请求
-	req, err := http.NewRequest("POST", webHook, strings.NewReader(content))
+	req, err := http.NewRequest("POST", hookUrl.String(), bytes.NewReader(msgContent))
 	if err != nil {
 		// handle error
 	}

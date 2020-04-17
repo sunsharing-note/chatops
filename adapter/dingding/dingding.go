@@ -52,7 +52,9 @@ func DingDing(c *gin.Context){
 		// 起一个协程去执行任务
 
 		fmt.Println(content)
-		sendMsgToDingTalk(content)
+		msg := "#### 顺风耳机器人\n"+
+			"> 内容：" + content
+		sendMsgToDingTalk("markdown",msg)
 	}
 }
 
