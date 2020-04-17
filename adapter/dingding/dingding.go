@@ -79,11 +79,10 @@ func DingDing(c *gin.Context){
 			if err != nil {
 				content = "执行命令失败"
 			}
-			fmt.Println(output)
-			content = output
 			msg := "#### 顺风耳机器人\n"+
 				"##### 主机：" + ip +"\n"+
-				"> 内容：" + content
+				"##### 内容：\n\n"+
+				output
 			sendMsgToDingTalk("markdown",msg)
 		}
 
