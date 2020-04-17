@@ -15,9 +15,7 @@ type Message struct {
 
 	Text       *Text       `json:"text,omitempty"`
 	Markdown   *Markdown   `json:"markdown,omitempty"`
-	//Link       *Link       `json:"link,omitempty"`
-	//ActionCard *ActionCard `json:"actionCard,omitempty"`
-	//FeedCard   *FeedCard   `json:"feedCard,omitempty"`
+	Link       *Link       `json:"link,omitempty"`
 }
 
 // Text text类型
@@ -30,6 +28,15 @@ type Markdown struct {
 	Title string `json:"title,omitempty"`
 	Text  string `json:"text,omitempty"`
 }
+
+// Link feedCard类型 links 参数
+type Link struct {
+	Title      string `json:"title,omitempty"`
+	Text       string `json:"title,omitempty"`
+	MessageURL string `json:"messageURL,omitempty"`
+	PicURL     string `json:"picURL,omitempty"`
+}
+
 
 // Body请求体
 type incoming struct {
@@ -68,6 +75,19 @@ func NewMarkDownMessage(title,content string) *Message {
 		Markdown: &Markdown{
 			Title: title,
 			Text:  content,
+		},
+	}
+}
+
+// NewLinkMessage 新建 link 类型消息
+func NewLinkMessage(title, text, msgUrl, picUrl string) *Message {
+	return &Message{
+		MsgType: "link",
+		Link: &Link{
+			Title:      title,
+			Text:       text,
+			MessageURL: msgUrl,
+			PicURL:     picUrl,
 		},
 	}
 }
