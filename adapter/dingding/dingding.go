@@ -2,7 +2,7 @@ package dingding
 
 import (
 	"code.rookieops.com/coolops/chatops/config"
-	"code.rookieops.com/coolops/chatops/scripts/sshd"
+	"code.rookieops.com/coolops/chatops/scripts"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
@@ -11,9 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"log"
-	"regexp"
 	"strconv"
-	"strings"
 )
 
 // 加签
@@ -52,41 +50,8 @@ func DingDing(c *gin.Context){
 			return
 		}
 		content := body.Text.Content
-		// 起一个协程去执行任务
-		//shellCommand := []string{
-		//	"df",
-		//	"ls",
-		//	"cat",
-		//}
 		fmt.Println(content)
-		// 查看本机磁盘/目录/文件
-		//var host string
-		var command string
-		if strings.Contains(content,"磁盘信息"){
-			command = "df -h"
-		}
-		if strings.Contains(content,"内存信息"){
-			command = "free -h"
-		}
-		// 找到主机IP
-		reg := regexp.MustCompile(`\d+.\d+.\d+.\d`)
-		res := reg.FindAllString(content,-1)
-		for _,ip:=range res{
-			fmt.Println(ip)
-			address := fmt.Sprintf("%s:%s",ip,"22")
-			cli := sshd.NewSSH("root","coolops@123456",address)
-			output, err := cli.Run(command)
-			if err != nil {
-				content = "执行命令失败"
-			}
-			msg := "#### 顺风耳机器人\n"+
-				"##### 主机：" + ip +"\n"+
-				"##### 内容：\n\n"+
-				output
-			sendMsgToDingTalk("markdown",msg)
-		}
-
-
+		scripts.RunCommand(content)
 	}
 }
 

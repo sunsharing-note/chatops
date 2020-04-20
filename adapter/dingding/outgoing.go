@@ -12,7 +12,7 @@ import (
 
 var baseHookUrl = "https://oapi.dingtalk.com/robot/send"
 
-func sendMsgToDingTalk(title,msg string){
+func SendMsgToDingTalk(title,msg string){
 	//请求地址模板
 	accessToekn := config.Setting.DingDing.AccessToken
 	query := url.Values{}

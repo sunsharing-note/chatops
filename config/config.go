@@ -10,6 +10,7 @@ type Config struct {
 	Adapter
 	DingDing
 	WeChat
+	Zabbix
 }
 
 type Adapter struct {
@@ -23,6 +24,12 @@ type DingDing struct {
 
 type WeChat struct {
 	AppSecret string `yaml:"app_secret"`
+}
+
+type Zabbix struct {
+	Url string `yaml:"url"`
+	UserName string `yaml:"username"`
+	PassWord string `yaml:"password"`
 }
 
 // 定义一个全局变量

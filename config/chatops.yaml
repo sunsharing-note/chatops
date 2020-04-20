@@ -7,3 +7,8 @@ dingding:
 
 wechat:
   app_secret: "xxxxx"
+
+zabbix:
+  url: "http://47.103.14.52:8088/api_jsonrpc.php"
+  username: "Admin"
+  password: "zabbix"
