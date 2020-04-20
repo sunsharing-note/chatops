@@ -34,7 +34,7 @@ func GetHost(api *zabbix.API, host string) (zabbix.ZabbixHost, error) {
 	return nil, &zabbix.ZabbixError{0, "", "Host not found"}
 }
 
-func GetUser(api *zabbix.API, u string) (zabbix.ZabbixUser, error) {
+func GetUser(api *zabbix.API, u string) ([]zabbix.ZabbixUser, error) {
 	params := make(map[string]interface{}, 0)
 	filter := make(map[string]string, 0)
 	if u != "all" {
@@ -59,6 +59,17 @@ func GetGraph(api *zabbix.API, hostid int) ([]zabbix.ZabbixGraph, error) {
 		return nil, err
 	}
 	return graph, nil
+}
+
+func GetAlert(api *zabbix.API, actionid string) ([]zabbix.ZabbixAlert,error){
+	params := make(map[string]interface{}, 0)
+	params["output"] = "extend"
+	params["actionids"] = actionid
+	alerts, err := api.Alert(params)
+	if err != nil {
+		return nil,err
+	}
+	return alerts,nil
 }
 
 func getHostidByHost(host string) (hostid int) {

@@ -8,6 +8,9 @@ import (
 	"net/http"
 )
 
+// 定义告警级别常量
+
+
 /**
 Zabbix and Go's RPC implementations don't play with each other.. at all.
 So I've re-created the wheel at bit.
@@ -41,7 +44,8 @@ func (z *ZabbixError) Error() string {
 }
 
 type ZabbixHost map[string]interface{}
-type ZabbixUser []interface{}
+type ZabbixAlert map[string]interface{}
+type ZabbixUser map[string]interface{}
 type ZabbixGraph map[string]interface{}
 type ZabbixGraphItem map[string]interface{}
 type ZabbixHistoryItem struct {
@@ -70,8 +74,7 @@ func (api *API) GetAuth() string {
 }
 
 /*
-Each request establishes its own connection to the server. This makes it easy
-to keep request/responses in order without doing any concurrency
+zabbix 请求操作
 */
 
 func (api *API) ZabbixRequest(method string, data interface{}) (JsonRPCResponse, error) {
@@ -103,11 +106,6 @@ func (api *API) ZabbixRequest(method string, data interface{}) (JsonRPCResponse,
 		return JsonRPCResponse{}, err
 	}
 
-	/**
-	We can't rely on response.ContentLength because it will
-	be set at -1 for large responses that are chunked. So
-	we treat each API response as streamed data.
-	*/
 	var result JsonRPCResponse
 	var buf bytes.Buffer
 
@@ -116,9 +114,9 @@ func (api *API) ZabbixRequest(method string, data interface{}) (JsonRPCResponse,
 		return JsonRPCResponse{}, err
 	}
 
-	json.Unmarshal(buf.Bytes(), &result)
+	_ = json.Unmarshal(buf.Bytes(), &result)
 
-	response.Body.Close()
+	_ = response.Body.Close()
 
 	return result, nil
 }
@@ -172,7 +170,7 @@ func (api *API) Version() (string, error) {
 /**
 Interface to the user.* calls
 */
-func (api *API) User(method string, data interface{}) ([]interface{}, error) {
+func (api *API) User(method string, data interface{}) ([]ZabbixUser, error) {
 	response, err := api.ZabbixRequest("user."+method, data)
 	if err != nil {
 		return nil, err
@@ -182,7 +180,11 @@ func (api *API) User(method string, data interface{}) ([]interface{}, error) {
 		return nil, &response.Error
 	}
 
-	return response.Result.([]interface{}), nil
+	res, err := json.Marshal(response.Result)
+	var ret []ZabbixUser
+	err = json.Unmarshal(res, &ret)
+
+	return ret, nil
 }
 
 /**
@@ -244,6 +246,27 @@ func (api *API) History(method string, data interface{}) ([]ZabbixHistoryItem, e
 	// to the type I want to return
 	res, err := json.Marshal(response.Result)
 	var ret []ZabbixHistoryItem
+	err = json.Unmarshal(res, &ret)
+	return ret, nil
+}
+
+/**
+获取告警信息
+*/
+func (api *API) Alert(data interface{}) ([]ZabbixAlert,error){
+	response, err := api.ZabbixRequest("alert.get", data)
+	if err != nil {
+		return nil, err
+	}
+
+	if response.Error.Code != 0 {
+		return nil, &response.Error
+	}
+
+	// XXX uhg... there has got to be a better way to convert the response
+	// to the type I want to return
+	res, err := json.Marshal(response.Result)
+	var ret []ZabbixAlert
 	err = json.Unmarshal(res, &ret)
 	return ret, nil
 }
