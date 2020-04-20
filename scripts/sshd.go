@@ -1,14 +1,13 @@
 package scripts
 
 import (
-	"code.rookieops.com/coolops/chatops/adapter/dingding"
 	"code.rookieops.com/coolops/chatops/scripts/sshd"
 	"fmt"
 	"regexp"
 	"strings"
 )
 
-func doShell(content string){
+func doShell(content string)(msg []string){
 	var command string
 	if strings.Contains(content,"磁盘信息"){
 		command = "df -h"
@@ -17,7 +16,7 @@ func doShell(content string){
 		command = "free -h"
 	}
 	// 找到主机IP
-	reg := regexp.MustCompile(`\d+.\d+.\d+.\d`)
+	reg := regexp.MustCompile(`\d+.\d+.\d+.\d+`)
 	res := reg.FindAllString(content,-1)
 	for _,ip:=range res {
 		fmt.Println(ip)
@@ -27,10 +26,12 @@ func doShell(content string){
 		if err != nil {
 			content = "执行命令失败"
 		}
-		msg := "#### 顺风耳机器人\n" +
+		tmp := "#### 顺风耳机器人\n" +
 			"##### 主机：" + ip + "\n" +
 			"##### 内容：\n\n" +
 			output
-		dingding.SendMsgToDingTalk("markdown", msg)
+		//dingding.SendMsgToDingTalk("markdown", msg)
+		msg = append(msg,tmp)
 	}
+	return msg
 }

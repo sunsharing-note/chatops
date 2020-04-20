@@ -51,7 +51,12 @@ func DingDing(c *gin.Context){
 		}
 		content := body.Text.Content
 		fmt.Println(content)
-		scripts.RunCommand(content)
+		msg := scripts.RunCommand(content)
+		for _, message := range msg{
+			fmt.Println(message)
+			SendMsgToDingTalk("markdown",message)
+		}
+
 	}
 }
 

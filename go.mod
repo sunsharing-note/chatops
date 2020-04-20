@@ -4,6 +4,6 @@ go 1.13
 
 require (
 	github.com/gin-gonic/gin v1.6.2
-	golang.org/x/crypto v0.0.0-20200414173820-0848c9571904 // indirect
+	golang.org/x/crypto v0.0.0-20200414173820-0848c9571904
 	gopkg.in/yaml.v2 v2.2.8
 )

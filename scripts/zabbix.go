@@ -1,10 +1,11 @@
 package scripts
 
 import (
-	"code.rookieops.com/coolops/chatops/adapter/dingding"
 	"code.rookieops.com/coolops/chatops/config"
 	"code.rookieops.com/coolops/chatops/scripts/zabbix"
+	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -13,7 +14,7 @@ func GetHost(api *zabbix.API, host string) (zabbix.ZabbixHost, error) {
 	filter := make(map[string]string, 0)
 	filter["host"] = host
 	params["filter"] = filter
-	params["output"] = "extend"
+	params["output"] = []string{"hostid", "host"}
 	params["select_groups"] = "extend"
 	params["templated_hosts"] = 1
 	ret, err := api.Host("get", params)
@@ -30,55 +31,96 @@ func GetHost(api *zabbix.API, host string) (zabbix.ZabbixHost, error) {
 
 	// This will be the case if the RPC call was successful, but
 	// Zabbix had an issue with the data we passed.
-	return nil, &zabbix.ZabbixError{0,"","Host not found"}
+	return nil, &zabbix.ZabbixError{0, "", "Host not found"}
 }
 
-func GetUser(api *zabbix.API,u string) (zabbix.ZabbixUser,error){
+func GetUser(api *zabbix.API, u string) (zabbix.ZabbixUser, error) {
 	params := make(map[string]interface{}, 0)
 	filter := make(map[string]string, 0)
-	filter["surname"] = u
-	params["filter"] = filter
-	params["output"] = "extend"
+	if u != "all" {
+		filter["surname"] = u
+		params["filter"] = filter
+	}
+	params["output"] = []string{"userid", "alias", "name", "surname"}
 	user, err := api.User("get", params)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	return user,err
+	return user, err
 }
 
-func GetGraph(api *zabbix.API,hostid int)([]zabbix.ZabbixGraph,error){
+func GetGraph(api *zabbix.API, hostid int) ([]zabbix.ZabbixGraph, error) {
 	params := make(map[string]interface{}, 0)
 	params["output"] = "extend"
-	params["hostids"]=hostid
+	params["hostids"] = hostid
 	params["sortfield"] = "name"
 	graph, err := api.Graph("get", params)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	return graph,nil
+	return graph, nil
 }
 
-func doZabbix(content string){
+func getHostidByHost(host string) (hostid int) {
+	return
+}
+
+func doZabbix(content string) (msg []string) {
 	// 连接zabbix
 	api, err := zabbix.NewAPI(config.Setting.Zabbix.Url, config.Setting.Zabbix.UserName, config.Setting.Zabbix.PassWord)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+	// 登录zabbix
+	_, err = api.Login()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	var resData string
-	if strings.Contains(content,"zabbix版本"){
+	var tmp string
+	if strings.Contains(content, "zabbix版本") {
 		version, err := api.Version()
 
 		if err != nil {
-			fmt.Println("get zabbix version failed. err:",err)
+			fmt.Println("get zabbix version failed. err:", err)
 			resData = "获取zabbix版本失败"
 		}
 		resData = version
+		tmp = "#### 顺风耳机器人\n" +
+			//"##### 主机：" + ip + "\n" +
+			"version:" + resData
 	}
 
-	msg := "#### 顺风耳机器人\n" +
-		//"##### 主机：" + ip + "\n" +
-		"##### 内容：\n\n" +
-		resData
-	dingding.SendMsgToDingTalk("markdown", msg)
+	if strings.Contains(content, "zabbix所有用户") {
+		user, err := GetUser(api, "all")
+		if err != nil {
+			fmt.Println("get all user failed. err:", err)
+			resData = "获取ZABBIX所有用户失败"
+		}
+		fmt.Println(user)
+		data, err := json.Marshal(&user)
+		fmt.Println(string(data))
+		resData = string(data)
+		tmp = "#### 顺风耳机器人\n" +
+			//"##### 主机：" + ip + "\n" +
+			"所有用户:" + resData
+	}
+	reg := regexp.MustCompile(`\d+.\d+.\d+.\d+`)
+	res := reg.FindAllString(content, -1)
+	if strings.Contains(content, "主机信息") {
+		host, err := GetHost(api, res[0])
+		if err != nil {
+			fmt.Printf("获取主机%s的监控信息失败, err:%s", res[0], err.Error())
+			resData = fmt.Sprintf("获取主机%s的监控信息失败", res[0])
+		}
+		data, err := json.Marshal(&host)
+		resData = string(data)
+		tmp = "#### 顺风耳机器人\n" +
+			"##### 主机：" + res[0] + "\n" +
+			"主机信息:" + resData
+	}
+	msg = append(msg, tmp)
+	return
 }
