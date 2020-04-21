@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func doShell(msg *message.Message)*message.Message{
+func doShell(msg *message.Message){
 	content := msg.ReadMessageToString()
 	var command string
 	if strings.Contains(content,"磁盘信息"){
@@ -38,5 +38,4 @@ func doShell(msg *message.Message)*message.Message{
 		msg.Body = strings.NewReader(tmp)
 		message.OutChan <- msg
 	}
-	return msg
 }
