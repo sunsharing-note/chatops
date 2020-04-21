@@ -68,7 +68,7 @@ func (d *Dingtalk) DingDing(c *gin.Context) {
 		msg := message.NewMessage(body.Text.Content)
 		msg.Sender = body.SenderId
 		msg.Header.Set("sender", body.SenderNick)
-
+		//message.InputChan <- msg
 		//content := body.Text.Content
 		//fmt.Println(content)
 		scripts.RunCommand(msg)

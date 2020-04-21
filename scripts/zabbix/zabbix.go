@@ -47,6 +47,7 @@ type ZabbixHost map[string]interface{}
 type ZabbixAlert map[string]interface{}
 type ZabbixUser map[string]interface{}
 type ZabbixGraph map[string]interface{}
+type ZabbixEvent map[string]interface{}
 type ZabbixGraphItem map[string]interface{}
 type ZabbixHistoryItem struct {
 	Clock  string `json:"clock"`
@@ -268,6 +269,27 @@ func (api *API) Alert(data interface{}) ([]ZabbixAlert,error){
 	res, err := json.Marshal(response.Result)
 	fmt.Println(res)
 	var ret []ZabbixAlert
+	err = json.Unmarshal(res, &ret)
+	return ret, nil
+}
+/**
+获取事件信息 event.*
+*/
+func (api *API) Event(method string,data interface{}) ([]ZabbixEvent,error){
+	response, err := api.ZabbixRequest("event."+method, data)
+	if err != nil {
+		return nil, err
+	}
+
+	if response.Error.Code != 0 {
+		return nil, &response.Error
+	}
+
+	// XXX uhg... there has got to be a better way to convert the response
+	// to the type I want to return
+	res, err := json.Marshal(response.Result)
+	fmt.Println(res)
+	var ret []ZabbixEvent
 	err = json.Unmarshal(res, &ret)
 	return ret, nil
 }

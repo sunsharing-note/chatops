@@ -20,7 +20,7 @@ type Message struct {
 }
 
 var OutChan = make(chan *Message,10)
-
+var InputChan = make(chan *Message,10)
 // Header 消息附带的头信息，键-值对
 type Header map[string][]string
 

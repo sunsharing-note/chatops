@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// GetHost 获取主机
 func GetHost(api *zabbix.API, host string) (zabbix.ZabbixHost, error) {
 	params := make(map[string]interface{}, 0)
 	filter := make(map[string]string, 0)
@@ -35,6 +36,7 @@ func GetHost(api *zabbix.API, host string) (zabbix.ZabbixHost, error) {
 	return nil, &zabbix.ZabbixError{0, "", "Host not found"}
 }
 
+// GetUser 获取用户
 func GetUser(api *zabbix.API, u string) ([]zabbix.ZabbixUser, error) {
 	params := make(map[string]interface{}, 0)
 	filter := make(map[string]string, 0)
@@ -50,6 +52,7 @@ func GetUser(api *zabbix.API, u string) ([]zabbix.ZabbixUser, error) {
 	return user, err
 }
 
+// GetGraph 获取图形
 func GetGraph(api *zabbix.API, hostid int) ([]zabbix.ZabbixGraph, error) {
 	params := make(map[string]interface{}, 0)
 	params["output"] = "extend"
@@ -62,11 +65,39 @@ func GetGraph(api *zabbix.API, hostid int) ([]zabbix.ZabbixGraph, error) {
 	return graph, nil
 }
 
+// GetAlert 获取告警
 func GetAlert(api *zabbix.API, actionid string) ([]zabbix.ZabbixAlert,error){
 	params := make(map[string]interface{}, 0)
 	params["output"] = "extend"
 	params["actionids"] = actionid
 	alerts, err := api.Alert(params)
+	if err != nil {
+		return nil,err
+	}
+	return alerts,nil
+}
+
+// GetEvent 获取事件
+func GetEvent(api *zabbix.API, hostids string) ([]zabbix.ZabbixEvent,error){
+	params := make(map[string]interface{}, 0)
+	params["output"] = "extend"
+	params["hostids"] = hostids
+	alerts, err := api.Event("get",params)
+	if err != nil {
+		return nil,err
+	}
+	return alerts,nil
+}
+
+// GetHistory 获取事件
+func GetHistory(api *zabbix.API, hostids string) ([]zabbix.ZabbixHistoryItem,error){
+	params := make(map[string]interface{}, 0)
+	params["output"] = "extend"
+	params["hostids"] = hostids
+	params["sortfield"] = "clock"
+	params["sortorder"] = "DESC"
+	params["limit"] = 10
+	alerts, err := api.History("get",params)
 	if err != nil {
 		return nil,err
 	}
@@ -93,7 +124,7 @@ func doZabbix(msg *message.Message) {
 	var resData string
 	var tmp string
 	content := msg.ReadMessageToString()
-	if strings.Contains(content, "zabbix版本") {
+	if strings.Contains(content, "版本信息") {
 		version, err := api.Version()
 
 		if err != nil {
@@ -106,7 +137,7 @@ func doZabbix(msg *message.Message) {
 			"version:" + resData
 	}
 
-	if strings.Contains(content, "zabbix所有用户") {
+	if strings.Contains(content, "所有用户") {
 		user, err := GetUser(api, "all")
 		if err != nil {
 			fmt.Println("get all user failed. err:", err)
@@ -146,6 +177,52 @@ func doZabbix(msg *message.Message) {
 		tmp = "#### 顺风耳机器人\n" +
 			//"##### 主机：" + res[0] + "\n" +
 			"报警信息:" + resData
+	}
+	if strings.Contains(content,"事件信息"){
+		// 1、获取到hostids
+		fmt.Println(res[0])
+		host, err := GetHost(api, res[0])
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println(host["hostid"])
+		if host["hostid"] != nil{
+			events, err := GetEvent(api, host["hostid"].(string))
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			data, err := json.Marshal(&events)
+			resData = string(data)
+			fmt.Println(resData)
+			tmp = "#### 顺风耳机器人\n" +
+				"##### 主机：" + res[0] + "\n" +
+				"事件信息:" + resData
+		}
+	}
+	if strings.Contains(content,"历史记录"){
+		// 1、获取到hostids
+		fmt.Println(res[0])
+		host, err := GetHost(api, res[0])
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println(host["hostid"])
+		if host["hostid"] != nil{
+			events, err := GetHistory(api, host["hostid"].(string))
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			data, err := json.Marshal(&events)
+			resData = string(data)
+			fmt.Println(resData)
+			tmp = "#### 顺风耳机器人\n" +
+				"##### 主机：" + res[0] + "\n" +
+				"历史记录:" + resData
+		}
 	}
 	msg.Header.Set("msgtype","markdown")
 	msg.Body = strings.NewReader(tmp)

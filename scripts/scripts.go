@@ -11,10 +11,36 @@ import (
 func RunCommand(msg *message.Message) {
 	// 查看本机磁盘/目录/文件
 	//var host string
+	menu := `## 帮助信息
+------------------
+### 1、zabbix
+- 获取zabbix的所有用户
+- 获取zabbix的版本信息
+- 获取zabbix[IP]的主机信息
+- 获取zabbix[IP]的报警信息
+- 获取zabbix[IP]的事件信息
+- 获取zabbix[IP]的历史记录
+### 2、处理Kubernetes
+### 3、执行Linux命令
+- 获取[IP]的内存信息
+- 获取[IP]的磁盘信息
+------------------
+请按着帮助信息输入内容！
+`
 	content := msg.ReadMessageToString()
-	if strings.Contains(content,"zabbix"){
+	if strings.Contains(content, "help") {
+		msg.Header.Set("msgtype", "markdown")
+		msg.Body = strings.NewReader(menu)
+		message.OutChan <- msg
+
+		// 阻塞等待用户输入
+		// 取出消息的内容和消息的发送者进行判断
+		// 根据用户的输入执行不同的方法
+
+	}
+	if strings.Contains(content, "zabbix") {
 		doZabbix(msg)
-	}else{
+	} else {
 		doShell(msg)
 		fmt.Println("执行shell")
 	}
