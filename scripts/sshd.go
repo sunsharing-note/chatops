@@ -1,13 +1,15 @@
 package scripts
 
 import (
+	"code.rookieops.com/coolops/chatops/message"
 	"code.rookieops.com/coolops/chatops/scripts/sshd"
 	"fmt"
 	"regexp"
 	"strings"
 )
 
-func doShell(content string)(msg []string){
+func doShell(msg *message.Message)*message.Message{
+	content := msg.ReadMessageToString()
 	var command string
 	if strings.Contains(content,"磁盘信息"){
 		command = "df -h"
@@ -31,7 +33,10 @@ func doShell(content string)(msg []string){
 			"##### 内容：\n\n" +
 			output
 		//dingding.SendMsgToDingTalk("markdown", msg)
-		msg = append(msg,tmp)
+		// 直接放进channel中
+		msg.Header.Set("msgtype","markdown")
+		msg.Body = strings.NewReader(tmp)
+		message.OutChan <- msg
 	}
 	return msg
 }

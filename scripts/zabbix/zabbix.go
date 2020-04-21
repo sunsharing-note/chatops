@@ -266,6 +266,7 @@ func (api *API) Alert(data interface{}) ([]ZabbixAlert,error){
 	// XXX uhg... there has got to be a better way to convert the response
 	// to the type I want to return
 	res, err := json.Marshal(response.Result)
+	fmt.Println(res)
 	var ret []ZabbixAlert
 	err = json.Unmarshal(res, &ret)
 	return ret, nil

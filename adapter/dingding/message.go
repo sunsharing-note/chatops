@@ -1,6 +1,9 @@
 package dingding
 
-import "fmt"
+import (
+	"code.rookieops.com/coolops/chatops/message"
+	"fmt"
+)
 
 // At  定义需要at的用户
 type At struct {
@@ -93,17 +96,24 @@ func NewLinkMessage(title, text, msgUrl, picUrl string) *Message {
 }
 
 // 创建消息
-func buildMessage(title,msg string) *Message{
+func buildMessage(msg *message.Message) *Message{
 	var destMsg *Message
+	title := msg.Header.Get("title")
+	// 如果title为空，为其制定一个默认的title
+	if title == ""{
+		title = "机器人消息"
+	}
 
-	msgType := title
+	// 获取msgType类型，根据类型判断选择处理方式
+	msgType := msg.Header.Get("msgtype")
+	fmt.Println("111111111111",msgType)
 	switch  msgType {
 	case "text":
 		fmt.Println("发送文本消息")
-		destMsg = NewTextMessage(msg)
+		destMsg = NewTextMessage(msg.ReadMessageToString())
 	case "markdown":
 		fmt.Println("发送markdown消息")
-		destMsg = NewMarkDownMessage(title,msg)
+		destMsg = NewMarkDownMessage(title,msg.ReadMessageToString())
 	case "link":
 		fmt.Println("发送link消息")
 	default:

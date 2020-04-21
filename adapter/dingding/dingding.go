@@ -2,6 +2,7 @@ package dingding
 
 import (
 	"code.rookieops.com/coolops/chatops/config"
+	"code.rookieops.com/coolops/chatops/message"
 	"code.rookieops.com/coolops/chatops/scripts"
 	"crypto/hmac"
 	"crypto/sha256"
@@ -14,6 +15,12 @@ import (
 	"strconv"
 )
 
+// 定义一个钉钉结构体
+type Dingtalk struct {
+}
+
+var Dingding *Dingtalk
+
 // 加签
 func signature(ts int64, secret string) string {
 	strToSign := fmt.Sprintf("%d\n%s", ts, secret)
@@ -23,7 +30,12 @@ func signature(ts int64, secret string) string {
 	return base64.StdEncoding.EncodeToString(data)
 }
 
-func DingDing(c *gin.Context){
+// 初始化dingtalk
+func NewDingtalk() *Dingtalk {
+	return &Dingtalk{}
+}
+
+func (d *Dingtalk) DingDing(c *gin.Context) {
 	// 获取body里的请求参数
 	//fmt.Println(c.Request.Header)
 	HttpSign := c.Request.Header.Get("Sign")
@@ -36,12 +48,12 @@ func DingDing(c *gin.Context){
 	}
 
 	data, _ := ioutil.ReadAll(c.Request.Body)
-	fmt.Println("---body/--- \r\n "+string(data))
+	fmt.Println("---body/--- \r\n " + string(data))
 
-	sign := signature(tsi,config.Setting.DingDing.AppSecret)
+	sign := signature(tsi, config.Setting.DingDing.AppSecret)
 
 	// 校验成功
-	if HttpSign == sign{
+	if HttpSign == sign {
 		//
 		var body incoming
 		err := json.Unmarshal(data, &body)
@@ -49,16 +61,18 @@ func DingDing(c *gin.Context){
 			fmt.Println(err)
 			return
 		}
-		content := body.Text.Content
-		fmt.Println(content)
-		msg := scripts.RunCommand(content)
-		for _, message := range msg{
-			fmt.Println(message)
-			SendMsgToDingTalk("markdown",message)
-		}
 
+		// 初始化Dingtalk
+		Dingding = NewDingtalk()
+
+		msg := message.NewMessage(body.Text.Content)
+		msg.Sender = body.SenderId
+		msg.Header.Set("sender", body.SenderNick)
+
+		//content := body.Text.Content
+		//fmt.Println(content)
+		scripts.RunCommand(msg)
+		// 开启协程，监听消息发送
+		go d.listenOutChanMsg()
 	}
 }
-
-
-

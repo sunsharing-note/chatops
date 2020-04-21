@@ -2,6 +2,7 @@ package scripts
 
 import (
 	"code.rookieops.com/coolops/chatops/config"
+	"code.rookieops.com/coolops/chatops/message"
 	"code.rookieops.com/coolops/chatops/scripts/zabbix"
 	"encoding/json"
 	"fmt"
@@ -76,7 +77,7 @@ func getHostidByHost(host string) (hostid int) {
 	return
 }
 
-func doZabbix(content string) (msg []string) {
+func doZabbix(msg *message.Message) {
 	// 连接zabbix
 	api, err := zabbix.NewAPI(config.Setting.Zabbix.Url, config.Setting.Zabbix.UserName, config.Setting.Zabbix.PassWord)
 	if err != nil {
@@ -91,6 +92,7 @@ func doZabbix(content string) (msg []string) {
 	}
 	var resData string
 	var tmp string
+	content := msg.ReadMessageToString()
 	if strings.Contains(content, "zabbix版本") {
 		version, err := api.Version()
 
@@ -132,6 +134,20 @@ func doZabbix(content string) (msg []string) {
 			"##### 主机：" + res[0] + "\n" +
 			"主机信息:" + resData
 	}
-	msg = append(msg, tmp)
-	return
+	if strings.Contains(content,"报警信息"){
+		alert, err := GetAlert(api, "3")
+		if err != nil {
+			fmt.Println("get alert info failed. err:",err)
+			resData = "获取报警信息失败"
+		}
+		data, err := json.Marshal(&alert)
+		resData = string(data)
+		fmt.Println(resData)
+		tmp = "#### 顺风耳机器人\n" +
+			//"##### 主机：" + res[0] + "\n" +
+			"报警信息:" + resData
+	}
+	msg.Header.Set("msgtype","markdown")
+	msg.Body = strings.NewReader(tmp)
+	message.OutChan <- msg
 }

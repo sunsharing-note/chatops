@@ -1,16 +1,21 @@
 package scripts
 
-import "strings"
+import (
+	"code.rookieops.com/coolops/chatops/message"
+	"fmt"
+	"strings"
+)
 
 // 处理脚本
 
-func RunCommand(content string)(msg []string){
+func RunCommand(msg *message.Message) {
 	// 查看本机磁盘/目录/文件
 	//var host string
+	content := msg.ReadMessageToString()
 	if strings.Contains(content,"zabbix"){
-		msg = doZabbix(content)
+		doZabbix(msg)
 	}else{
-		msg = doShell(content)
+		doShell(msg)
+		fmt.Println("执行shell")
 	}
-	return msg
 }
