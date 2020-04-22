@@ -29,6 +29,7 @@ func RunCommand(msg *message.Message) {
 - 查询jenkins的所有视图
 - 查询jenkins视图[view_name]下的所有job
 - 执行jenkins build [job_name]
+- 重启jenkins
 ------------------
 请按着帮助信息输入内容！
 `

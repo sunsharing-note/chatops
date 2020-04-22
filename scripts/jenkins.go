@@ -66,6 +66,15 @@ func doJenkins(msg *message.Message) {
 			//"##### 主机：" + ip + "\n" +
 			"build:\n" + resData
 	}
+	if strings.Contains(content,"重启jenkins"){
+		err := jenkins.SafeRestart()
+		if err != nil {
+			resData = "重启Jenkins失败"
+		}else{
+			resData = "重启Jenkins成功，请稍后登录"
+		}
+		tmp = "#### 顺风耳机器人\n" + resData
+	}
 	msg.Header.Set("msgtype","markdown")
 	msg.Body = strings.NewReader(tmp)
 	message.OutChan <- msg
