@@ -2,13 +2,18 @@ adapter:
   adapter_name: dingding
 
 dingding:
-  app_secret: "xxxxxx"
-  access_token: "xxxxxx"
+  app_secret: "xxx-xxx"
+  access_token: "xxx"
 
 wechat:
   app_secret: "xxxxx"
 
 zabbix:
-  url: "http://xxxxxx/api_jsonrpc.php"
-  username: "xxxx"
-  password: "xxxx"
+  url: "http://xxxx/api_jsonrpc.php"
+  username: "xxx"
+  password: "xxx"
+
+jenkins:
+  url: "http://xxx"
+  username: "xx"
+  password: "xx"

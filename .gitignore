@@ -1,0 +1,12 @@
+*.sublime-*
+.autowatcher
+.DS_Store
+*.swp
+*.swo
+#*.*#
+.exe
+.idea
+.logs
+*.log
+
+test

@@ -24,6 +24,11 @@ func RunCommand(msg *message.Message) {
 ### 3、执行Linux命令
 - 获取[IP]的内存信息
 - 获取[IP]的磁盘信息
+### 4、处理Jenkins
+- 查询jenkins的所有job
+- 查询jenkins的所有视图
+- 查询jenkins视图[view_name]下的所有job
+- 执行jenkins build [job_name]
 ------------------
 请按着帮助信息输入内容！
 `
@@ -40,6 +45,8 @@ func RunCommand(msg *message.Message) {
 	}
 	if strings.Contains(content, "zabbix") {
 		doZabbix(msg)
+	} else if strings.Contains(content,"jenkins"){
+		doJenkins(msg)
 	} else {
 		doShell(msg)
 		fmt.Println("执行shell")

@@ -11,6 +11,7 @@ type Config struct {
 	DingDing
 	WeChat
 	Zabbix
+	Jenkins
 }
 
 type Adapter struct {
@@ -31,6 +32,13 @@ type Zabbix struct {
 	UserName string `yaml:"username"`
 	PassWord string `yaml:"password"`
 }
+
+type Jenkins struct {
+	Url string `yaml:"url"`
+	UserName string `yaml:"username"`
+	PassWord string `yaml:"password"`
+}
+
 
 // 定义一个全局变量
 var Setting Config
