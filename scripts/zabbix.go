@@ -47,7 +47,7 @@ func GetUser(api *zabbix.API, u string) ([]zabbix.ZabbixUser, error) {
 	params["output"] = []string{"userid", "alias", "name", "surname"}
 	user, err := api.User("get", params)
 	if err != nil {
-		return nil, err
+		return nil, &zabbix.ZabbixError{0, "", "User not found"}
 	}
 	return user, err
 }
@@ -72,7 +72,7 @@ func GetAlert(api *zabbix.API, actionid string) ([]zabbix.ZabbixAlert,error){
 	params["actionids"] = actionid
 	alerts, err := api.Alert(params)
 	if err != nil {
-		return nil,err
+		return nil,&zabbix.ZabbixError{0, "", "Alert not found"}
 	}
 	return alerts,nil
 }
@@ -84,7 +84,7 @@ func GetEvent(api *zabbix.API, hostids string) ([]zabbix.ZabbixEvent,error){
 	params["hostids"] = hostids
 	alerts, err := api.Event("get",params)
 	if err != nil {
-		return nil,err
+		return nil,&zabbix.ZabbixError{0, "", "Event not found"}
 	}
 	return alerts,nil
 }
@@ -99,7 +99,7 @@ func GetHistory(api *zabbix.API, hostids string) ([]zabbix.ZabbixHistoryItem,err
 	params["limit"] = 10
 	alerts, err := api.History("get",params)
 	if err != nil {
-		return nil,err
+		return nil,&zabbix.ZabbixError{0, "", "History not found"}
 	}
 	return alerts,nil
 }
