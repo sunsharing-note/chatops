@@ -104,9 +104,6 @@ func GetHistory(api *zabbix.API, hostids string) ([]zabbix.ZabbixHistoryItem,err
 	return alerts,nil
 }
 
-func getHostidByHost(host string) (hostid int) {
-	return
-}
 
 func doZabbix(msg *message.Message) {
 	// 连接zabbix
@@ -130,8 +127,9 @@ func doZabbix(msg *message.Message) {
 		if err != nil {
 			fmt.Println("get zabbix version failed. err:", err)
 			resData = "获取zabbix版本失败"
+		}else{
+			resData = version
 		}
-		resData = version
 		tmp = "#### 顺风耳机器人\n" +
 			//"##### 主机：" + ip + "\n" +
 			"version:" + resData
@@ -142,11 +140,14 @@ func doZabbix(msg *message.Message) {
 		if err != nil {
 			fmt.Println("get all user failed. err:", err)
 			resData = "获取ZABBIX所有用户失败"
+		}else{
+			data, err := json.Marshal(&user)
+			if err != nil {
+				fmt.Println("marshal user data failed. err:",err)
+				return
+			}
+			resData = string(data)
 		}
-		fmt.Println(user)
-		data, err := json.Marshal(&user)
-		fmt.Println(string(data))
-		resData = string(data)
 		tmp = "#### 顺风耳机器人\n" +
 			//"##### 主机：" + ip + "\n" +
 			"所有用户:" + resData
@@ -158,9 +159,15 @@ func doZabbix(msg *message.Message) {
 		if err != nil {
 			fmt.Printf("获取主机%s的监控信息失败, err:%s", res[0], err.Error())
 			resData = fmt.Sprintf("获取主机%s的监控信息失败", res[0])
+		}else{
+			data, err := json.Marshal(&host)
+			if err != nil {
+				fmt.Println("marshal host data failed. err:",err)
+				return
+			}
+			resData = string(data)
 		}
-		data, err := json.Marshal(&host)
-		resData = string(data)
+
 		tmp = "#### 顺风耳机器人\n" +
 			"##### 主机：" + res[0] + "\n" +
 			"主机信息:" + resData
@@ -170,10 +177,15 @@ func doZabbix(msg *message.Message) {
 		if err != nil {
 			fmt.Println("get alert info failed. err:",err)
 			resData = "获取报警信息失败"
+		}else{
+			data, err := json.Marshal(&alert)
+			if err != nil {
+				fmt.Println("marshal alert data failed. err:",err)
+				return
+			}
+			resData = string(data)
 		}
-		data, err := json.Marshal(&alert)
-		resData = string(data)
-		fmt.Println(resData)
+
 		tmp = "#### 顺风耳机器人\n" +
 			//"##### 主机：" + res[0] + "\n" +
 			"报警信息:" + resData
@@ -186,16 +198,19 @@ func doZabbix(msg *message.Message) {
 			fmt.Println(err)
 			return
 		}
-		fmt.Println(host["hostid"])
 		if host["hostid"] != nil{
 			events, err := GetEvent(api, host["hostid"].(string))
 			if err != nil {
 				fmt.Println(err)
 				return
+			}else{
+				data, err := json.Marshal(&events)
+				if err != nil {
+					fmt.Println("marshal events data failed. err:",err)
+					return
+				}
+				resData = string(data)
 			}
-			data, err := json.Marshal(&events)
-			resData = string(data)
-			fmt.Println(resData)
 			tmp = "#### 顺风耳机器人\n" +
 				"##### 主机：" + res[0] + "\n" +
 				"事件信息:" + resData
@@ -209,16 +224,19 @@ func doZabbix(msg *message.Message) {
 			fmt.Println(err)
 			return
 		}
-		fmt.Println(host["hostid"])
 		if host["hostid"] != nil{
-			events, err := GetHistory(api, host["hostid"].(string))
+			history, err := GetHistory(api, host["hostid"].(string))
 			if err != nil {
 				fmt.Println(err)
 				return
+			}else{
+				data, err := json.Marshal(&history)
+				if err != nil {
+					fmt.Println("marshal events data failed. err:",err)
+					return
+				}
+				resData = string(data)
 			}
-			data, err := json.Marshal(&events)
-			resData = string(data)
-			fmt.Println(resData)
 			tmp = "#### 顺风耳机器人\n" +
 				"##### 主机：" + res[0] + "\n" +
 				"历史记录:" + resData
