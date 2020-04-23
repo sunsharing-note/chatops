@@ -25,9 +25,9 @@ func RunCommand(msg *message.Message) {
 - 获取[IP]的内存信息
 - 获取[IP]的磁盘信息
 ### 4、处理Jenkins
-- 查询jenkins的所有job
+- 查询jenkins的所有任务
 - 查询jenkins的所有视图
-- 查询jenkins视图[view_name]下的所有job
+- 查询jenkins视图[view_name]下的所有任务
 - 执行jenkins build [job_name]
 - 重启jenkins
 ------------------
