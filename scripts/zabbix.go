@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+var api *zabbix.API
+
 // GetHost 获取主机
 func GetHost(api *zabbix.API, host string) (zabbix.ZabbixHost, error) {
 	params := make(map[string]interface{}, 0)
@@ -104,10 +106,10 @@ func GetHistory(api *zabbix.API, hostids string) ([]zabbix.ZabbixHistoryItem,err
 	return alerts,nil
 }
 
-
-func doZabbix(msg *message.Message) {
+func init(){
 	// 连接zabbix
-	api, err := zabbix.NewAPI(config.Setting.Zabbix.Url, config.Setting.Zabbix.UserName, config.Setting.Zabbix.PassWord)
+	var err error
+	api, err = zabbix.NewAPI(config.Setting.Zabbix.Url, config.Setting.Zabbix.UserName, config.Setting.Zabbix.PassWord)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -118,6 +120,9 @@ func doZabbix(msg *message.Message) {
 		fmt.Println(err)
 		return
 	}
+}
+
+func doZabbix(msg *message.Message) {
 	var resData string
 	var tmp string
 	content := msg.ReadMessageToString()
