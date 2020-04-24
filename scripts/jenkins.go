@@ -39,9 +39,10 @@ func doJenkins(msg *message.Message) {
 	for name := range jks.ProcessMap{
 		if strings.Contains(content,name){
 			var result []reflect.Value
-			if name == "build"{
+			switch name {
+			case "build":
 				result, _ = utils.Call(jks.ProcessMap, name, content)
-			}else{
+			default:
 				result, _ = utils.Call(jks.ProcessMap, name)
 			}
 			msg.Header.Set("msgtype","markdown")
