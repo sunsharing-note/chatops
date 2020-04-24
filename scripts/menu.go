@@ -16,8 +16,8 @@ var menu = `## 帮助信息
 - 获取zabbix[IP]的历史记录
 ### 2、处理Kubernetes
 ### 3、执行Linux命令
-- 获取[IP]的内存信息
-- 获取[IP]的磁盘信息
+- shell 获取[IP]的内存信息
+- shell 获取[IP]的磁盘信息
 ### 4、处理Jenkins
 - 查询jenkins的所有任务
 - 查询jenkins的所有视图

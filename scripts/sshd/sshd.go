@@ -47,7 +47,7 @@ func (c Cli) Run(shell string) (string, error) {
 		return "", err
 	}
 	defer session.Close()
-	buf, err := session.CombinedOutput(shell)
+	buf, err := session.Output(shell)
 
 	c.LastResult = string(buf)
 	return c.LastResult, err

@@ -28,13 +28,13 @@ func doShell(msg *message.Message){
 		if err != nil {
 			content = "执行命令失败"
 		}
-		tmp := "#### 顺风耳机器人\n" +
-			"##### 主机：" + ip + "\n" +
-			"##### 内容：\n\n" +
+		tmp := "顺风耳机器人\n" +
+			"查询主机：" + ip + "\n" +
+			"输出内容：\n" +
 			output
 		//dingding.SendMsgToDingTalk("markdown", msg)
 		// 直接放进channel中
-		msg.Header.Set("msgtype","markdown")
+		msg.Header.Set("msgtype","text")
 		msg.Body = strings.NewReader(tmp)
 		message.OutChan <- msg
 	}
