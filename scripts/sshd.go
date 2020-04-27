@@ -20,11 +20,24 @@ func runShell(ip,content,command string)(tmp string){
 	output, err := cli.Run(command)
 	if err != nil {
 		content = "执行命令失败"
+		fmt.Println(err)
+		return
 	}
-	tmp = "顺风耳机器人\n" +
-		"查询主机：" + ip + "\n" +
-		"输出内容：\n" +
-		output
+}
+
+// 检查IP是否有效
+func checkIP(ipList []string,msg *message.Message) (res []string) {
+	// 检测IP是否在配置文件中，如果不在则返回无该IP，并从数组中删除该IP
+	for index,ip := range ipList{
+		hosts := file.Match(ip)
+		if len(hosts) == 0{
+			tmp := "无效的主机IP"+ip+",请检查。"
+			msg.Header.Set("msgtype", "text")
+			msg.Body = strings.NewReader(tmp)
+			message.OutChan <- msg
+			res = append(ipList[:index],ipList[index+1:]...)
+		}
+	}
 	return
 }
 
