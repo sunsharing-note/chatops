@@ -1,44 +1,100 @@
 package scripts
 
 import (
+	"code.rookieops.com/coolops/chatops/config"
 	"code.rookieops.com/coolops/chatops/message"
 	"code.rookieops.com/coolops/chatops/scripts/sshd"
+	"code.rookieops.com/coolops/chatops/utils"
 	"fmt"
+	"github.com/relex/aini"
 	"regexp"
 	"strings"
 )
-var shellMenu = map[string]string{
-	"内存信息":"free ",
-	"磁盘信息":"df ",
-	"进程信息":"ps -ef | grep ",
+
+var (
+	mySSH *sshd.MySSH
+	file  *aini.InventoryData
+)
+
+func init() {
+	// 加载主机配置文件
+	loadHostsFile()
+	// 初始化ssh
+	mySSH = sshd.NewMySSH()
+	mySSH.ShellMap["内存信息"] = mySSH.GetMemoryInfo
+	mySSH.ShellMap["磁盘信息"] = mySSH.GetDiskInfo
+	mySSH.ShellMap["负载信息"] = mySSH.GetUpTimeInfo
 }
 
-func runShell(ip,content,command string)(tmp string){
-	// 根据IP到数据库中查找端口，用户名，密码
-	address := fmt.Sprintf("%s:%s", ip, "22")
-	cli := sshd.NewSSH("root", "coolops@123456", address)
-	output, err := cli.Run(command)
+// 加载主机配置文件
+func loadHostsFile() {
+	var err error
+	file, err = aini.ParseFile(config.Setting.SSH.FilePath)
 	if err != nil {
-		content = "执行命令失败"
+		fmt.Println(err)
+		return
 	}
-	tmp = "顺风耳机器人\n" +
-		"查询主机：" + ip + "\n" +
-		"输出内容：\n" +
-		output
+}
+
+func checkIP(ipList []string,msg *message.Message) (res []string) {
+	// 检测IP是否在配置文件中，如果不在则返回无该IP，并从数组中删除该IP
+	for index,ip := range ipList{
+		hosts := file.Match(ip)
+		if len(hosts) == 0{
+			tmp := "无效的主机IP"+ip+",请检查。"
+			msg.Header.Set("msgtype", "text")
+			msg.Body = strings.NewReader(tmp)
+			message.OutChan <- msg
+			res = append(ipList[:index],ipList[index+1:]...)
+		}
+	}
 	return
 }
 
-func doShell(msg *message.Message){
+func runShell(ip, name string) []string {
+	// 根据IP到数据库中查找端口，用户名，密码
+	resData := make([]string, 0)
+	// 检测IP是否存在于配置中
+	hosts := file.Match(ip)
+	for _, host := range hosts {
+		// 获取端口，用户名，密码
+		sshHost := host.Name
+		sshPort := host.Port
+		sshUser := host.Vars["ssh_user"]
+		sshPassword := host.Vars["ssh_password"]
+		fmt.Println(sshPort, sshUser, sshPassword)
+		// 连接服务器
+		address := fmt.Sprintf("%s:%d", sshHost, sshPort)
+		mySSH.SshCli = sshd.NewSSH(sshUser, sshPassword, address)
+		output, _ := utils.Call(mySSH.ShellMap, name)
+		msg := output[0].String()
+		//fmt.Println(msg)
+		resData = append(resData, msg)
+	}
+	return resData
+}
+
+func doShell(msg *message.Message) {
 	content := msg.ReadMessageToString()
+	// 获取content中的IP地址
 	reg := regexp.MustCompile(`\d+.\d+.\d+.\d+`)
-	res := reg.FindAllString(content,-1)
-	for menu := range shellMenu{
-		if strings.Contains(content,menu){
-			for _,ip:=range res{
-				tmp := runShell(ip,content,shellMenu[menu])
-				msg.Header.Set("msgtype","text")
-				msg.Body = strings.NewReader(tmp)
-				message.OutChan <- msg
+	res := reg.FindAllString(content, -1)
+
+	ipList := checkIP(res,msg)
+
+	for name := range mySSH.ShellMap {
+		// 判断关键字是否存在
+		if strings.Contains(content, name) {
+			for _, ip := range ipList {
+				resData := runShell(ip, name)
+				for _, tmp := range resData {
+					tmp = "顺风耳机器人\n" +
+						"查询主机：" + ip + "\n" +
+						"输出内容：\n" + tmp
+					msg.Header.Set("msgtype", "text")
+					msg.Body = strings.NewReader(tmp)
+					message.OutChan <- msg
+				}
 			}
 		}
 	}

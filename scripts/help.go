@@ -5,7 +5,9 @@ import (
 	"strings"
 )
 
-var menu = `## 帮助信息
+//var helpMenu = map[string]string
+
+var helpMenu = `## 帮助信息
 ------------------
 ### 1、zabbix
 - 获取zabbix的所有用户
@@ -18,6 +20,10 @@ var menu = `## 帮助信息
 ### 3、执行Linux命令
 - shell 获取[IP]的内存信息
 - shell 获取[IP]的磁盘信息
+- shell 查看[IP|DOMAIN] [PORT]是否占用
+- shell 查看[IP] [LOGFILE]日志
+- shell 检测[IP|DOMAIN] 连通性
+- shell 获取[IP]的负载信息
 ### 4、处理Jenkins
 - 查询jenkins的所有任务
 - 查询jenkins的所有视图
@@ -28,8 +34,15 @@ var menu = `## 帮助信息
 请按着帮助信息输入内容！
 `
 
-func doMenu(msg *message.Message){
+func doHelpMenu(msg *message.Message){
 	msg.Header.Set("msgtype", "markdown")
-	msg.Body = strings.NewReader(menu)
+	msg.Body = strings.NewReader(helpMenu)
+	message.OutChan <- msg
+}
+
+func doError(msg *message.Message){
+	tmp := "无效的输入，请查询help帮助"
+	msg.Header.Set("msgtype", "text")
+	msg.Body = strings.NewReader(tmp)
 	message.OutChan <- msg
 }

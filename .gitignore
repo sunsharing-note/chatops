@@ -8,5 +8,5 @@
 .idea
 .logs
 *.log
-
+chatops.yaml
 test
