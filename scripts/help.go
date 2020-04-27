@@ -20,7 +20,7 @@ var helpMenu = `## 帮助信息
 ### 3、执行Linux命令
 - shell 获取[IP]的内存信息
 - shell 获取[IP]的磁盘信息
-- shell 查看[IP|DOMAIN] [PORT]是否占用
+- shell 端口检测[IP|DOMAIN] [PORT]
 - shell 查看[IP] [LOGFILE]日志
 - shell 检测[IP|DOMAIN] 连通性
 - shell 获取[IP]的负载信息

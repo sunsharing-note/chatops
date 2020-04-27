@@ -24,6 +24,7 @@ func init() {
 	mySSH.ShellMap["内存信息"] = mySSH.GetMemoryInfo
 	mySSH.ShellMap["磁盘信息"] = mySSH.GetDiskInfo
 	mySSH.ShellMap["负载信息"] = mySSH.GetUpTimeInfo
+	mySSH.ShellMap["端口检测"] = mySSH.CheckPort
 }
 
 // 加载主机配置文件
@@ -31,39 +32,35 @@ func loadHostsFile() {
 	var err error
 	file, err = aini.ParseFile(config.Setting.SSH.FilePath)
 	if err != nil {
-<<<<<<< HEAD
-		content = "执行命令失败"
-=======
->>>>>>> master
 		fmt.Println(err)
 		return
 	}
 }
 
-<<<<<<< HEAD
 // 检查IP是否有效
-=======
->>>>>>> master
-func checkIP(ipList []string,msg *message.Message) (res []string) {
+func checkIP(ipList []string, msg *message.Message) (res []string) {
 	// 检测IP是否在配置文件中，如果不在则返回无该IP，并从数组中删除该IP
-	for index,ip := range ipList{
+	for index, ip := range ipList {
 		hosts := file.Match(ip)
-		if len(hosts) == 0{
-			tmp := "无效的主机IP"+ip+",请检查。"
+		if len(hosts) == 0 {
+			tmp := "无效的主机IP" + ip + ",请检查。"
 			msg.Header.Set("msgtype", "text")
 			msg.Body = strings.NewReader(tmp)
 			message.OutChan <- msg
-			res = append(ipList[:index],ipList[index+1:]...)
+			res = append(ipList[:index], ipList[index+1:]...)
+		}else{
+			res = ipList
 		}
 	}
 	return
 }
 
-func runShell(ip, name string) []string {
+func runShell(ip, name, content string) []string {
 	// 根据IP到数据库中查找端口，用户名，密码
 	resData := make([]string, 0)
 	// 检测IP是否存在于配置中
 	hosts := file.Match(ip)
+	fmt.Println("222222222",name)
 	for _, host := range hosts {
 		// 获取端口，用户名，密码
 		sshHost := host.Name
@@ -74,8 +71,15 @@ func runShell(ip, name string) []string {
 		// 连接服务器
 		address := fmt.Sprintf("%s:%d", sshHost, sshPort)
 		mySSH.SshCli = sshd.NewSSH(sshUser, sshPassword, address)
-		output, _ := utils.Call(mySSH.ShellMap, name)
-		msg := output[0].String()
+		var msg string
+		switch name {
+		case "端口检测":
+			output, _ := utils.Call(mySSH.ShellMap, name, content)
+			msg = output[0].String()
+		default:
+			output, _ := utils.Call(mySSH.ShellMap, name)
+			msg = output[0].String()
+		}
 		//fmt.Println(msg)
 		resData = append(resData, msg)
 	}
@@ -87,14 +91,12 @@ func doShell(msg *message.Message) {
 	// 获取content中的IP地址
 	reg := regexp.MustCompile(`\d+.\d+.\d+.\d+`)
 	res := reg.FindAllString(content, -1)
-
-	ipList := checkIP(res,msg)
-
+	ipList := checkIP(res, msg)
 	for name := range mySSH.ShellMap {
 		// 判断关键字是否存在
 		if strings.Contains(content, name) {
 			for _, ip := range ipList {
-				resData := runShell(ip, name)
+				resData := runShell(ip, name, content)
 				for _, tmp := range resData {
 					tmp = "顺风耳机器人\n" +
 						"查询主机：" + ip + "\n" +
