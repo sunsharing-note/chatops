@@ -12,6 +12,7 @@ type Config struct {
 	WeChat
 	Zabbix
 	Jenkins
+	SSH
 }
 
 type Adapter struct {
@@ -37,6 +38,10 @@ type Jenkins struct {
 	Url string `yaml:"url"`
 	UserName string `yaml:"username"`
 	PassWord string `yaml:"password"`
+}
+
+type SSH struct {
+	FilePath string `yaml:"file_path"`
 }
 
 

@@ -36,7 +36,8 @@ func (c *Cli) Connect() (*Cli, error) {
 	return c, nil
 }
 
-func (c Cli) Run(shell string) (string, error) {
+// Run 执行命令的方法
+func (c *Cli) Run(shell string) (string, error) {
 	if c.client == nil {
 		if _,err := c.Connect(); err != nil {
 			return "", err
@@ -52,4 +53,3 @@ func (c Cli) Run(shell string) (string, error) {
 	c.LastResult = string(buf)
 	return c.LastResult, err
 }
-

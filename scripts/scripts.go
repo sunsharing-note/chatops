@@ -12,7 +12,7 @@ var menuMap = map[string]interface{}{
 	"zabbix":  doZabbix,
 	"jenkins": doJenkins,
 	"shell":   doShell,
-	"help":    doMenu,
+	"help":    doHelpMenu,
 }
 
 func RunCommand(msg *message.Message) {
@@ -21,11 +21,28 @@ func RunCommand(msg *message.Message) {
 	content := msg.ReadMessageToString()
 	for menu := range menuMap {
 		if strings.Contains(content, menu) {
-			_, err := utils.Call(menuMap, menu, msg)
-			if err != nil {
-				fmt.Println(err)
-				return
+			switch menu {
+			case "zabbix":
+				_, _ = utils.Call(menuMap, menu, msg)
+			case "jenkins":
+				_, _ = utils.Call(menuMap, menu, msg)
+			case "shell":
+				_, _ = utils.Call(menuMap, menu, msg)
+			case "help":
+				_, _ = utils.Call(menuMap, menu, msg)
+			default:
+				fmt.Println("无效的输入，请查询help帮助")
+				doError(msg)
 			}
+
+			//if err != nil {
+			//	fmt.Println(err)
+			//	return
+			//}
+		}else{
+			fmt.Println("无效的输入，请输入help查询帮助")
+			doError(msg)
+			return
 		}
 	}
 

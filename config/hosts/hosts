@@ -1,0 +1,4 @@
+# 配置主机清单
+[LinuxServer]
+127.0.0.1 ssh_user=root ssh_port=22 ssh_password="coolops@123456"
+172.17.0.2 ssh_user=root ssh_port=22 ssh_password="coolops@123456"

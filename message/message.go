@@ -19,8 +19,9 @@ type Message struct {
 	Body       io.Reader // 消息体
 }
 
-var OutChan = make(chan *Message,10)
+var OutChan = make(chan *Message,20)
 var InputChan = make(chan *Message,10)
+var Msg *Message
 // Header 消息附带的头信息，键-值对
 type Header map[string][]string
 
