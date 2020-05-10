@@ -1,6 +1,7 @@
 package myjenkins
 
 import (
+	"code.rookieops.com/coolops/chatops/message"
 	"fmt"
 	"github.com/bndr/gojenkins"
 	"strings"
@@ -10,11 +11,14 @@ import (
 type MyJenkins struct {
 	Jenkins    *gojenkins.Jenkins
 	ProcessMap map[string]interface{}
+	msg *message.Message
+	output string
 }
 
-func NewMyJenkins() *MyJenkins {
+func NewMyJenkins(msg *message.Message) *MyJenkins {
 	return &MyJenkins{
 		ProcessMap: make(map[string]interface{}, 10),
+		msg:msg,
 	}
 }
 
@@ -24,47 +28,47 @@ func (m *MyJenkins) RegisterProcess(name string, value interface{}) {
 }
 
 // 查询Jenkins上所有任务
-func (m *MyJenkins) GetAllJob() (resData string) {
+func (m *MyJenkins) GetAllJob() {
 	jobs, err := m.Jenkins.GetAllJobs()
 	if err != nil {
 		fmt.Println("获取所有Job失败，err:", err)
-		resData = "获取所有Job失败"
+		m.output = "获取所有Job失败" + err.Error()
+		m.sendMsgOut()
+		return
 	} else {
 		for _, job := range jobs {
-			resData = resData + "\n" + job.GetName() + "\n"
+			m.output = m.output + "\n" + job.GetName() + "\n"
 		}
+		m.sendMsgOut()
 	}
-	resData = "#### 顺风耳机器人\n" +
-		//"##### 主机：" + ip + "\n" +
-		"所有任务列表:\n" + resData
-	return
 }
 
 // 查询Jenkins上所有视图
-func (m *MyJenkins) GetAllView() (resData string) {
+func (m *MyJenkins) GetAllView() {
 	views, err := m.Jenkins.GetAllViews()
 	if err != nil {
 		fmt.Println("获取所有视图失败，err:", err)
-		resData = "获取所有视图失败"
+		m.output = "获取Jenkins所有视图失败"+ err.Error()
+		m.sendMsgOut()
+		return
 	} else {
 		for _, view := range views {
-			resData = resData + "\n" + view.GetName() + "\n"
+			m.output = m.output + "\n" + view.GetName() + "\n"
 		}
+		m.sendMsgOut()
 	}
-	resData = "#### 顺风耳机器人\n" +
-		//"##### 主机：" + ip + "\n" +
-		"所有视图:\n" + resData
-	return
 }
 
 // 执行Jenkins构建工作
-func (m *MyJenkins) BuildJob(content string) (resData string) {
+func (m *MyJenkins) BuildJob(content string) {
 	// 获取需要build的job
 	strings.TrimSpace(content)
 	buildName := strings.Split(content, " ")[3]
 	_, err := m.Jenkins.BuildJob(buildName)
 	if err != nil {
-		resData = "build " + buildName + "失败"
+		m.output = "build " + buildName + "失败" + err.Error()
+		m.sendMsgOut()
+		return
 	} else {
 		// 获取build的url
 		_, _ = m.Jenkins.Poll()
@@ -82,22 +86,27 @@ func (m *MyJenkins) BuildJob(content string) (resData string) {
 		}
 		_, _ = build.Poll()
 		url := build.GetUrl()
-		resData = buildName + "执行成功\n\n" + "详情请点击" + url
+		m.output = buildName + "执行成功\n\n" + "详情请点击" + url
+		m.sendMsgOut()
 	}
-	resData = "#### 顺风耳机器人>\n" +
-		//"##### 主机：" + ip + "\n" +
-		"build:\n" + resData
-	return
 }
 
 // 重启Jenkins
-func (m *MyJenkins) RestartJenkins() (resData string) {
+func (m *MyJenkins) RestartJenkins() {
 	err := m.Jenkins.SafeRestart()
 	if err != nil {
-		resData = "重启Jenkins失败"
+		m.output = "重启Jenkins失败" + err.Error()
+		m.sendMsgOut()
+		return
 	} else {
-		resData = "重启Jenkins成功，请稍后登录"
+		m.output = "重启Jenkins成功，请稍后登录"
+		m.sendMsgOut()
 	}
-	resData = "#### 顺风耳机器人\n" + resData
-	return
+}
+
+// sendMsgOut  向外发送消息
+func (m *MyJenkins) sendMsgOut(){
+	m.msg.Header.Set("msgtype","markdown")
+	m.msg.Body = strings.NewReader(m.output)
+	message.OutChan <- m.msg
 }

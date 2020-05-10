@@ -13,24 +13,24 @@ import (
 
 var (
 	mySSH *sshd.MySSH
-	file  *aini.InventoryData
 )
 
-func init() {
-	// 加载主机配置文件
-	loadHostsFile()
+func initSSH(msg *message.Message) {
 	// 初始化ssh
-	mySSH = sshd.NewMySSH()
+	mySSH = sshd.NewMySSH(msg)
 	mySSH.ShellMap["内存信息"] = mySSH.GetMemoryInfo
 	mySSH.ShellMap["磁盘信息"] = mySSH.GetDiskInfo
 	mySSH.ShellMap["负载信息"] = mySSH.GetUpTimeInfo
 	mySSH.ShellMap["端口检测"] = mySSH.CheckPort
+	mySSH.ShellMap["服务检测"] = mySSH.CheckServer
+	// 加载主机配置文件
+	loadHostsFile()
 }
 
 // 加载主机配置文件
 func loadHostsFile() {
 	var err error
-	file, err = aini.ParseFile(config.Setting.SSH.FilePath)
+	mySSH.File, err = aini.ParseFile(config.Setting.SSH.FilePath)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -41,7 +41,7 @@ func loadHostsFile() {
 func checkIP(ipList []string, msg *message.Message) (res []string) {
 	// 检测IP是否在配置文件中，如果不在则返回无该IP，并从数组中删除该IP
 	for index, ip := range ipList {
-		hosts := file.Match(ip)
+		hosts := mySSH.File.Match(ip)
 		if len(hosts) == 0 {
 			tmp := "无效的主机IP" + ip + ",请检查。"
 			msg.Header.Set("msgtype", "text")
@@ -59,7 +59,7 @@ func runShell(ip, name, content string) []string {
 	// 根据IP到数据库中查找端口，用户名，密码
 	resData := make([]string, 0)
 	// 检测IP是否存在于配置中
-	hosts := file.Match(ip)
+	hosts := mySSH.File.Match(ip)
 	fmt.Println("222222222",name)
 	for _, host := range hosts {
 		// 获取端口，用户名，密码
@@ -86,10 +86,33 @@ func runShell(ip, name, content string) []string {
 	return resData
 }
 
+func doShell2(msg *message.Message){
+	// 初始化
+	initSSH(msg)
+	content := msg.ReadMessageToString()
+	//var outputMsg string
+	for name := range mySSH.ShellMap {
+		// 判断关键字是否存在
+		if strings.Contains(content, name) {
+			switch name {
+			case "端口检测" , "服务检测":
+				_, _ = utils.Call(mySSH.ShellMap, name, content)
+				//outputMsg = output[0].String()
+			case "内存信息" , "磁盘信息", "负载信息":
+				// 获取IP -> 登录服务器 -> 执行命令 -> 返回结果
+				_, _ = utils.Call(mySSH.ShellMap, name, content)
+				//outputMsg = output[0].String()
+			default:
+
+			}
+		}
+	}
+}
+
 func doShell(msg *message.Message) {
 	content := msg.ReadMessageToString()
 	// 获取content中的IP地址
-	reg := regexp.MustCompile(`\d+.\d+.\d+.\d+`)
+	reg := regexp.MustCompile(`((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)`)
 	res := reg.FindAllString(content, -1)
 	ipList := checkIP(res, msg)
 	for name := range mySSH.ShellMap {
