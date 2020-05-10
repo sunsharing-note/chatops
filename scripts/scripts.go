@@ -11,7 +11,7 @@ import (
 var menuMap = map[string]interface{}{
 	"zabbix":  doZabbix,
 	"jenkins": doJenkins,
-	"shell":   doShell2,
+	"shell":   doShell,
 	"help":    doHelpMenu,
 }
 
