@@ -20,3 +20,6 @@ jenkins:
 
 ssh:
   file_path: "../chatops/config/hosts/hosts"
+
+redis:
+  ipaddr: "122.51.79.172:6379"

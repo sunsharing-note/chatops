@@ -6,7 +6,6 @@ import (
 	"github.com/relex/aini"
 	"net"
 	"regexp"
-	"sort"
 	"strings"
 	"time"
 )
@@ -128,7 +127,7 @@ func (m *MySSH) CheckPort(content string)  {
 		//ipPort = regexp.MustCompile(`\s+`).Split(ip, -1)
 		//checkIp := fmt.Sprintf("%s:%s",ipPort[0],ipPort[1])
 		ipPort = strings.Split(ip,":")
-		conn, err = net.DialTimeout("tcp", ip, 3*time.Second);
+		conn, err = net.DialTimeout("tcp", ip, 3*time.Second)
 		if err !=nil{
 			// 表示未被占用
 			m.output = fmt.Sprintf("IP为%s的服务器%s未被使用",ipPort[0],ipPort[1])

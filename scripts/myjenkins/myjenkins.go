@@ -63,7 +63,7 @@ func (m *MyJenkins) GetAllView() {
 func (m *MyJenkins) BuildJob(content string) {
 	// 获取需要build的job
 	strings.TrimSpace(content)
-	buildName := strings.Split(content, " ")[3]
+	buildName := strings.Split(content, " ")[2]
 	_, err := m.Jenkins.BuildJob(buildName)
 	if err != nil {
 		m.output = "build " + buildName + "失败" + err.Error()
@@ -86,7 +86,7 @@ func (m *MyJenkins) BuildJob(content string) {
 		}
 		_, _ = build.Poll()
 		url := build.GetUrl()
-		m.output = buildName + "执行成功\n\n" + "详情请点击" + url
+		m.output = buildName + "执行成功\n\n" + "[详情请点击](" + url+")"
 		m.sendMsgOut()
 	}
 }
@@ -104,9 +104,28 @@ func (m *MyJenkins) RestartJenkins() {
 	}
 }
 
+// GetJobConfig 获取Job的配置信息
+func (m *MyJenkins)GetJobConfig(content string){
+	strings.TrimSpace(content)
+	buildName := strings.Split(content, ":")[1]
+	fmt.Println(buildName)
+	job, err := m.Jenkins.GetJob(buildName)
+	if err != nil {
+		fmt.Println(err)
+	}
+	if config, err := job.GetConfig();err !=nil{
+		fmt.Println(err)
+	}else{
+		m.output = config
+		m.sendMsgOut()
+	}
+}
+
+
+
 // sendMsgOut  向外发送消息
 func (m *MyJenkins) sendMsgOut(){
-	m.msg.Header.Set("msgtype","markdown")
+	m.msg.Header.Set("msgtype","text")
 	m.msg.Body = strings.NewReader(m.output)
 	message.OutChan <- m.msg
 }

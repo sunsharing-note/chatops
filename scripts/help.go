@@ -31,7 +31,8 @@ var helpMenu = `## 帮助信息
 - 查询jenkins的所有任务
 - 查询jenkins的所有视图
 - 查询jenkins视图[view_name]下的所有任务
-- 执行jenkins build [job_name]
+- 构建:jenkins build [job_name]
+- jenkins Job配置信息,Name:[job_name]
 - 重启jenkins
 ------------------
 请按着帮助信息输入内容！

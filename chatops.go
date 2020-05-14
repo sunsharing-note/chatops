@@ -15,6 +15,6 @@ func main() {
 }
 
 // 处理业务
-func process(c *gin.Context){
-	adapter.Adapter(c)
+func process(c *gin.Context) {
+		adapter.Adapter(c)
 }

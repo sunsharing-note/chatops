@@ -3,6 +3,7 @@ package scripts
 import (
 	"code.rookieops.com/coolops/chatops/config"
 	"code.rookieops.com/coolops/chatops/message"
+	"code.rookieops.com/coolops/chatops/myredis"
 	"code.rookieops.com/coolops/chatops/scripts/myjenkins"
 	"code.rookieops.com/coolops/chatops/utils"
 	"fmt"
@@ -26,6 +27,7 @@ func initJenkins(msg *message.Message) {
 	jks.ProcessMap["所有视图"] = jks.GetAllView
 	jks.ProcessMap["build"] = jks.BuildJob
 	jks.ProcessMap["重启jenkins"] = jks.RestartJenkins
+	jks.ProcessMap["Job配置信息"] = jks.GetJobConfig
 }
 
 // 执行jenkins相关处理
@@ -34,12 +36,33 @@ func doJenkins(msg *message.Message) {
 	initJenkins(msg)
 	content := msg.ReadMessageToString()
 	//var resData string
-
+	// 对消息体进行格式化处理
+	content = strings.TrimSpace(content)
+	//fmt.Println(content)
 	for name := range jks.ProcessMap {
 		if strings.Contains(content, name) {
 			switch name {
-			case "build":
+			case "build", "Job配置信息":
 				_, _ = utils.Call(jks.ProcessMap, name, content)
+			case "重启jenkins":
+				split := strings.Split(content, " ")
+				fmt.Println(split)
+				fmt.Println(len(split))
+				if len(split) == 2 && split[1] == "是"{
+					_, _ = utils.Call(jks.ProcessMap, name)
+					rdsConn := myredis.MyPool.Get()
+					_, _ = rdsConn.Do("del", "data")
+				}else if len(split) == 2 && split[1] == "否"{
+					rdsConn := myredis.MyPool.Get()
+					_, _ = rdsConn.Do("DEL", "data")
+				}else{
+					rdsConn := myredis.MyPool.Get()
+					//_, _ = rdsConn.Do("del", "data")
+					_, _ = rdsConn.Do("set", "data", split[0])
+					msg.Header.Set("msgtype","text")
+					msg.Body = strings.NewReader("确定要重启吗？")
+					message.OutChan <- msg
+				}
 			default:
 				_, _ = utils.Call(jks.ProcessMap, name)
 			}

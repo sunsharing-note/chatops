@@ -42,6 +42,8 @@ func doShell(msg *message.Message){
 	initSSH(msg)
 	content := msg.ReadMessageToString()
 	//var outputMsg string
+	// 对消息体进行格式化处理
+	content = strings.TrimSpace(content)
 	for name := range mySSH.ShellMap {
 		// 判断关键字是否存在
 		if strings.Contains(content, name) {
