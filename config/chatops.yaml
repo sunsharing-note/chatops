@@ -2,24 +2,24 @@ adapter:
   adapter_name: dingding
 
 dingding:
-  app_secret: "xxxxUK-K5WcNgZaR3Pq2"
-  access_token: "xxxxd0915d67c20e9040e1ae"
+  app_secret: "gWs8GFmPZzZmCMeRtbLKaCzor8tzJoyp4QKogD5WOVFt2Dk7UK-K5WcNgZaR3Pq2"
+  access_token: "61f0415bbdd8c05317a086a63b042c154ca22ddee6ffd0915d67c20e9040e1ae"
 
 wechat:
   app_secret: "xxxxx"
 
 zabbix:
-  url: "http://xxxx:8088/api_jsonrpc.php"
+  url: "http://47.103.14.52:8088/api_jsonrpc.php"
   username: "Admin"
   password: "zabbix"
 
 jenkins:
-  url: "http://xxxx"
+  url: "http://jenkins.coolops.cn"
   username: "admin"
-  password: "admin"
+  password: "admin@coolops"
 
 ssh:
   file_path: "../chatops/config/hosts/hosts"
 
 redis:
-  ipaddr: "xxxx:6379"
+  ipaddr: "122.51.79.172:6379"
