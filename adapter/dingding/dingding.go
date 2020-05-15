@@ -3,6 +3,7 @@ package dingding
 import (
 	"code.rookieops.com/coolops/chatops/config"
 	"code.rookieops.com/coolops/chatops/message"
+	"code.rookieops.com/coolops/chatops/middleware"
 	"code.rookieops.com/coolops/chatops/model"
 	"code.rookieops.com/coolops/chatops/myredis"
 	"code.rookieops.com/coolops/chatops/scripts"
@@ -14,7 +15,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gomodule/redigo/redis"
 	"io/ioutil"
-	"log"
 	"strconv"
 )
 
@@ -49,11 +49,10 @@ func (d *Dingtalk) DingDing(c *gin.Context) {
 	//fmt.Println(c.Request.Header)
 	HttpSign := c.Request.Header.Get("Sign")
 	HttpTimestamp := c.Request.Header.Get("Timestamp")
-
 	// timestamp 与系统当前时间戳如果相差1小时以上，则认为是非法的请求。
 	tsi, err := strconv.ParseInt(HttpTimestamp, 10, 64)
 	if err != nil {
-		log.Printf("请求头可能未附加时间戳信息!!")
+		middleware.Logger().Error("请求头可能未附加时间戳信息!!")
 	}
 
 	data, _ := ioutil.ReadAll(c.Request.Body)
@@ -77,21 +76,14 @@ func (d *Dingtalk) DingDing(c *gin.Context) {
 		Dingding = NewDingtalk()
 		senderNick := c.Request.Header.Get("senderNick")
 		// 初始化redis和MyChatDao
-		fmt.Println("1111111",config.Setting.Redis.IpAddr)
 		redisPool = myredis.RedisPool(config.Setting.Redis.IpAddr)
 		model.MyChatDao = model.NewChatDao(redisPool)
 		// 从redis中取值
 		//myredis.MyPool = myredis.RedisPool()
 		//defer myredis.MyPool.Close()
 		//rdsConn := myredis.MyPool.Get()
-		getName, err := model.MyChatDao.Get("name")
-		if err != nil{
-			fmt.Println("get name from redis failed,",err)
-		}
-		getData, err := model.MyChatDao.Get("data")
-		if err != nil{
-			fmt.Println("get data from redis failed,",err)
-		}
+		getName, _ := model.MyChatDao.Get("name")
+		getData, _ := model.MyChatDao.Get("data")
 		//getName, _ := redis.String(rdsConn.Do("get", "name"))
 		//getData, _ := redis.String(rdsConn.Do("get", "data"))
 		fmt.Println(getName)
@@ -102,11 +94,11 @@ func (d *Dingtalk) DingDing(c *gin.Context) {
 			//_, _ = rdsConn.Do("DEL", "data")
 			//_, _ = rdsConn.Do("SET", "name", senderNick)
 			if err := model.MyChatDao.Delete("data");err!=nil{
-				fmt.Println("delete data from redis failed,",err)
+				middleware.Logger().Error("delete data from redis failed,",err)
 				return
 			}
 			if err := model.MyChatDao.Set("name", senderNick);err != nil{
-				fmt.Println("set name to redis failed,",err)
+				middleware.Logger().Error("set name to redis failed,",err)
 				return
 			}
 			content = body.Text.Content

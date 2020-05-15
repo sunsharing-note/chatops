@@ -14,6 +14,7 @@ type Config struct {
 	Jenkins
 	SSH
 	Redis
+	Logs
 }
 
 type Adapter struct {
@@ -48,6 +49,11 @@ type SSH struct {
 type Redis struct {
 	IpAddr string `yaml:"ipaddr"`
 }
+
+type Logs struct {
+	LogPath string `yaml:"log_path"`
+}
+
 // 定义一个全局变量
 var Setting Config
 
