@@ -99,7 +99,7 @@ func (m *MyJenkins) RestartJenkins() {
 		m.sendMsgOut()
 		return
 	} else {
-		m.output = "重启Jenkins成功，请稍后登录"
+		m.output = "Jenkins正在重启......，请稍后登录"
 		m.sendMsgOut()
 	}
 }

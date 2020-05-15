@@ -2,14 +2,14 @@ adapter:
   adapter_name: dingding
 
 dingding:
-  app_secret: "xxxxUK-K5WcNgZaR3Pq2"
-  access_token: "xxxxd0915d67c20e9040e1ae"
+  app_secret: "xxx-K5WcNgZaR3Pq2"
+  access_token: "xxxx"
 
 wechat:
   app_secret: "xxxxx"
 
 zabbix:
-  url: "http://xxxx:8088/api_jsonrpc.php"
+  url: "http://4xxx:8088/api_jsonrpc.php"
   username: "Admin"
   password: "zabbix"
 
@@ -22,4 +22,4 @@ ssh:
   file_path: "../chatops/config/hosts/hosts"
 
 redis:
-  ipaddr: "xxxx:6379"
+  ipaddr: "xxx.xxx.xxx.172:6379"

@@ -17,6 +17,7 @@
         <method importPath="io" receiver="ReadCloser" name="Close" />
         <method importPath="github.com/gomodule/redigo/redis" receiver="*Pool" name="Close" />
         <method importPath="github.com/gomodule/redigo/redis" receiver="Conn" name="Close" />
+        <method importPath="go.uber.org/zap" receiver="*SugaredLogger" name="Sync" />
       </methods>
     </inspection_tool>
   </profile>

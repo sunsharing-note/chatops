@@ -10,3 +10,4 @@
 *.log
 chatops.yaml
 test
+config/chatops.yaml
