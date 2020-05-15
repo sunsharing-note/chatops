@@ -3,7 +3,7 @@ package scripts
 import (
 	"code.rookieops.com/coolops/chatops/config"
 	"code.rookieops.com/coolops/chatops/message"
-	"code.rookieops.com/coolops/chatops/myredis"
+	"code.rookieops.com/coolops/chatops/model"
 	"code.rookieops.com/coolops/chatops/scripts/myjenkins"
 	"code.rookieops.com/coolops/chatops/utils"
 	"fmt"
@@ -46,19 +46,37 @@ func doJenkins(msg *message.Message) {
 				_, _ = utils.Call(jks.ProcessMap, name, content)
 			case "重启jenkins":
 				split := strings.Split(content, " ")
-				fmt.Println(split)
-				fmt.Println(len(split))
 				if len(split) == 2 && split[1] == "是"{
 					_, _ = utils.Call(jks.ProcessMap, name)
-					rdsConn := myredis.MyPool.Get()
-					_, _ = rdsConn.Do("del", "data")
-				}else if len(split) == 2 && split[1] == "否"{
-					rdsConn := myredis.MyPool.Get()
-					_, _ = rdsConn.Do("DEL", "data")
-				}else{
-					rdsConn := myredis.MyPool.Get()
+					//rdsConn := myredis.MyPool.Get()
 					//_, _ = rdsConn.Do("del", "data")
-					_, _ = rdsConn.Do("set", "data", split[0])
+					if err := model.MyChatDao.Delete("data");err != nil{
+						fmt.Println(err)
+						return
+					}
+					if err := model.MyChatDao.Delete("name");err !=nil{
+						fmt.Println(err)
+						return
+					}
+				}else if len(split) == 2 && split[1] == "否"{
+					if err := model.MyChatDao.Delete("data");err !=nil{
+						fmt.Println(err)
+						return
+					}
+					if err := model.MyChatDao.Delete("name");err !=nil{
+						fmt.Println(err)
+						return
+					}
+					//rdsConn := myredis.MyPool.Get()
+					//_, _ = rdsConn.Do("DEL", "data")
+				}else{
+					//rdsConn := myredis.MyPool.Get()
+					////_, _ = rdsConn.Do("del", "data")
+					//_, _ = rdsConn.Do("set", "data", split[0])
+					if err := model.MyChatDao.Set("data", split[0]);err !=nil{
+						fmt.Println(err)
+						return
+					}
 					msg.Header.Set("msgtype","text")
 					msg.Body = strings.NewReader("确定要重启吗？")
 					message.OutChan <- msg

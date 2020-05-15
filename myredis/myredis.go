@@ -2,8 +2,6 @@ package myredis
 
 import "github.com/gomodule/redigo/redis"
 
-// 初始化redis
-var MyPool *redis.Pool
 
 func RedisPool()*redis.Pool{
 	return &redis.Pool{

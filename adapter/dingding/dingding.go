@@ -3,6 +3,7 @@ package dingding
 import (
 	"code.rookieops.com/coolops/chatops/config"
 	"code.rookieops.com/coolops/chatops/message"
+	"code.rookieops.com/coolops/chatops/model"
 	"code.rookieops.com/coolops/chatops/myredis"
 	"code.rookieops.com/coolops/chatops/scripts"
 	"crypto/hmac"
@@ -21,7 +22,11 @@ import (
 type Dingtalk struct {
 }
 
-var Dingding *Dingtalk
+var (
+	Dingding *Dingtalk
+	redisPool *redis.Pool
+	content string
+	)
 
 // 加签
 func signature(ts int64, secret string) string {
@@ -71,22 +76,38 @@ func (d *Dingtalk) DingDing(c *gin.Context) {
 		// 初始化Dingtalk
 		Dingding = NewDingtalk()
 		senderNick := c.Request.Header.Get("senderNick")
+		// 初始化redis和MyChatDao
+		redisPool = myredis.RedisPool()
+		model.MyChatDao = model.NewChatDao(redisPool)
 		// 从redis中取值
-		myredis.MyPool = myredis.RedisPool()
-		defer myredis.MyPool.Close()
-		rdsConn := myredis.MyPool.Get()
-		getSession, _ := redis.String(rdsConn.Do("get", senderNick))
-		getData, _ := redis.String(rdsConn.Do("get", "data"))
-		fmt.Println(getSession)
-		var content string
-		if getSession == "111111" && getData != "" {
-			fmt.Println("111")
+		//myredis.MyPool = myredis.RedisPool()
+		//defer myredis.MyPool.Close()
+		//rdsConn := myredis.MyPool.Get()
+		getName, err := model.MyChatDao.Get("name")
+		if err != nil{
+			fmt.Println("get name from redis failed,",err)
+		}
+		getData, err := model.MyChatDao.Get("data")
+		if err != nil{
+			fmt.Println("get data from redis failed,",err)
+		}
+		//getName, _ := redis.String(rdsConn.Do("get", "name"))
+		//getData, _ := redis.String(rdsConn.Do("get", "data"))
+		fmt.Println(getName)
+		if getName == senderNick && getData != "" {
 			// 将起拼接到现有的前面
 			content = getData + body.Text.Content
 		} else {
-			fmt.Println("222")
-			_, _ = rdsConn.Do("DEL", "data")
-			_, _ = rdsConn.Do("SET", senderNick, "111111")
+			//_, _ = rdsConn.Do("DEL", "data")
+			//_, _ = rdsConn.Do("SET", "name", senderNick)
+			if err := model.MyChatDao.Delete("data");err!=nil{
+				fmt.Println("delete data from redis failed,",err)
+				return
+			}
+			if err := model.MyChatDao.Set("name", senderNick);err != nil{
+				fmt.Println("set name to redis failed,",err)
+				return
+			}
 			content = body.Text.Content
 		}
 		fmt.Println(content)

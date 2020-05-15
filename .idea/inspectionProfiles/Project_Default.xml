@@ -16,6 +16,7 @@
         <method importPath="golang.org/x/crypto/ssh" receiver="Client" name="Close" />
         <method importPath="io" receiver="ReadCloser" name="Close" />
         <method importPath="github.com/gomodule/redigo/redis" receiver="*Pool" name="Close" />
+        <method importPath="github.com/gomodule/redigo/redis" receiver="Conn" name="Close" />
       </methods>
     </inspection_tool>
   </profile>
