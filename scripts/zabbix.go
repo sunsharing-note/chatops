@@ -126,6 +126,9 @@ func doZabbix(msg *message.Message) {
 	var resData string
 	var tmp string
 	content := msg.ReadMessageToString()
+	// 对消息体进行格式化处理
+	content = strings.TrimSpace(content)
+
 	if strings.Contains(content, "版本信息") {
 		version, err := api.Version()
 

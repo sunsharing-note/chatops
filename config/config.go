@@ -13,6 +13,7 @@ type Config struct {
 	Zabbix
 	Jenkins
 	SSH
+	Redis
 }
 
 type Adapter struct {
@@ -44,7 +45,9 @@ type SSH struct {
 	FilePath string `yaml:"file_path"`
 }
 
-
+type Redis struct {
+	IpAddr string `yaml:"ipaddr"`
+}
 // 定义一个全局变量
 var Setting Config
 
