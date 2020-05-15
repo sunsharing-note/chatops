@@ -1,12 +1,14 @@
 package myredis
 
-import "github.com/gomodule/redigo/redis"
+import (
+	"github.com/gomodule/redigo/redis"
+)
 
 
-func RedisPool()*redis.Pool{
+func RedisPool(ip string)*redis.Pool{
 	return &redis.Pool{
 		Dial: func() (conn redis.Conn, err error) {
-			return redis.Dial("tcp","122.51.79.172:6379")
+			return redis.Dial("tcp",ip)
 		},
 		TestOnBorrow:    nil,
 		MaxIdle:         20,

@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"github.com/gin-contrib/sessions"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
@@ -14,6 +13,7 @@ type Config struct {
 	Zabbix
 	Jenkins
 	SSH
+	Redis
 }
 
 type Adapter struct {
@@ -45,12 +45,12 @@ type SSH struct {
 	FilePath string `yaml:"file_path"`
 }
 
-type MyRedis struct {
+type Redis struct {
 	IpAddr string `yaml:"ipaddr"`
 }
 // 定义一个全局变量
 var Setting Config
-var MySession sessions.Session
+
 // 初始化配置
 func init(){
 

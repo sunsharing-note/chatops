@@ -77,7 +77,8 @@ func (d *Dingtalk) DingDing(c *gin.Context) {
 		Dingding = NewDingtalk()
 		senderNick := c.Request.Header.Get("senderNick")
 		// 初始化redis和MyChatDao
-		redisPool = myredis.RedisPool()
+		fmt.Println("1111111",config.Setting.Redis.IpAddr)
+		redisPool = myredis.RedisPool(config.Setting.Redis.IpAddr)
 		model.MyChatDao = model.NewChatDao(redisPool)
 		// 从redis中取值
 		//myredis.MyPool = myredis.RedisPool()
