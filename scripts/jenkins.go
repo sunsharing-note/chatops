@@ -48,38 +48,22 @@ func doJenkins(msg *message.Message) {
 				split := strings.Split(content, " ")
 				if len(split) == 2 && split[1] == "是"{
 					_, _ = utils.Call(jks.ProcessMap, name)
-					//rdsConn := myredis.MyPool.Get()
-					//_, _ = rdsConn.Do("del", "data")
-					if err := model.MyChatDao.Delete("data");err != nil{
-						fmt.Println(err)
-						return
-					}
-					if err := model.MyChatDao.Delete("name");err !=nil{
+					if err := model.MyChatDao.ClearData([]string{"data","name"});err != nil{
 						fmt.Println(err)
 						return
 					}
 				}else if len(split) == 2 && split[1] == "否"{
-					if err := model.MyChatDao.Delete("data");err !=nil{
+					if err := model.MyChatDao.ClearData([]string{"data","name"});err != nil{
 						fmt.Println(err)
 						return
 					}
-					if err := model.MyChatDao.Delete("name");err !=nil{
-						fmt.Println(err)
-						return
-					}
-					//rdsConn := myredis.MyPool.Get()
-					//_, _ = rdsConn.Do("DEL", "data")
+					message.SendMsg(msg,"text","取消重启Jenkins操作.")
 				}else{
-					//rdsConn := myredis.MyPool.Get()
-					////_, _ = rdsConn.Do("del", "data")
-					//_, _ = rdsConn.Do("set", "data", split[0])
 					if err := model.MyChatDao.Set("data", split[0]);err !=nil{
 						fmt.Println(err)
 						return
 					}
-					msg.Header.Set("msgtype","text")
-					msg.Body = strings.NewReader("确定要重启吗？")
-					message.OutChan <- msg
+					message.SendMsg(msg,"text","确定要重启Jenkins吗?(是/否)")
 				}
 			default:
 				_, _ = utils.Call(jks.ProcessMap, name)
