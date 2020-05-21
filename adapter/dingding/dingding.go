@@ -5,7 +5,6 @@ import (
 	"code.rookieops.com/coolops/chatops/message"
 	"code.rookieops.com/coolops/chatops/middleware"
 	"code.rookieops.com/coolops/chatops/model"
-	"code.rookieops.com/coolops/chatops/myredis"
 	"code.rookieops.com/coolops/chatops/scripts"
 	"crypto/hmac"
 	"crypto/sha256"
@@ -23,42 +22,36 @@ type Dingtalk struct {
 }
 
 var (
-	Dingding *Dingtalk
+	Dingding  *Dingtalk
 	redisPool *redis.Pool
-	content string
-	)
-
-// 加签
-func signature(ts int64, secret string) string {
-	strToSign := fmt.Sprintf("%d\n%s", ts, secret)
-	hmac256 := hmac.New(sha256.New, []byte(secret))
-	hmac256.Write([]byte(strToSign))
-	data := hmac256.Sum(nil)
-	return base64.StdEncoding.EncodeToString(data)
-}
+	content   string
+)
 
 // 初始化dingtalk
-func NewDingtalk() *Dingtalk {
+func NewDingTalk() *Dingtalk {
 	return &Dingtalk{}
 }
 
 //var MySession sessions.Session
 
 func (d *Dingtalk) DingDing(c *gin.Context) {
+	// 定义两个变量，其中data是获取request的body，sign是加签
+	var (
+		sign string
+		data []byte
+	)
 	// 获取body里的请求参数
 	//fmt.Println(c.Request.Header)
 	HttpSign := c.Request.Header.Get("Sign")
 	HttpTimestamp := c.Request.Header.Get("Timestamp")
 	// timestamp 与系统当前时间戳如果相差1小时以上，则认为是非法的请求。
-	tsi, err := strconv.ParseInt(HttpTimestamp, 10, 64)
-	if err != nil {
+	if tsi, err := strconv.ParseInt(HttpTimestamp, 10, 64); err != nil {
 		middleware.Logger().Error("请求头可能未附加时间戳信息!!")
+	} else {
+		data, _ = ioutil.ReadAll(c.Request.Body)
+		fmt.Println("---body/--- \r\n " + string(data))
+		sign = d.signature(tsi, config.Setting.DingDing.AppSecret)
 	}
-
-	data, _ := ioutil.ReadAll(c.Request.Body)
-	fmt.Println("---body/--- \r\n " + string(data))
-
-	sign := signature(tsi, config.Setting.DingDing.AppSecret)
 
 	// 校验成功
 	if HttpSign == sign {
@@ -66,26 +59,19 @@ func (d *Dingtalk) DingDing(c *gin.Context) {
 		go d.listenOutChanMsg()
 
 		var body incoming
-		err := json.Unmarshal(data, &body)
-		if err != nil {
-			fmt.Println(err)
+		if err := json.Unmarshal(data, &body); err != nil {
+			middleware.Logger().Error(err)
 			return
 		}
 
 		// 初始化Dingtalk
-		Dingding = NewDingtalk()
+		Dingding = NewDingTalk()
 		senderNick := c.Request.Header.Get("senderNick")
 		// 初始化redis和MyChatDao
-		redisPool = myredis.RedisPool(config.Setting.Redis.IpAddr)
-		model.MyChatDao = model.NewChatDao(redisPool)
-		// 从redis中取值
-		//myredis.MyPool = myredis.RedisPool()
-		//defer myredis.MyPool.Close()
-		//rdsConn := myredis.MyPool.Get()
+		//redisPool = myredis.RedisPool(config.Setting.Redis.IpAddr)
+		//model.MyChatDao = model.NewChatDao(redisPool)
 		getName, _ := model.MyChatDao.Get("name")
 		getData, _ := model.MyChatDao.Get("data")
-		//getName, _ := redis.String(rdsConn.Do("get", "name"))
-		//getData, _ := redis.String(rdsConn.Do("get", "data"))
 		fmt.Println(getName)
 		if getName == senderNick && getData != "" {
 			// 将起拼接到现有的前面
@@ -93,12 +79,12 @@ func (d *Dingtalk) DingDing(c *gin.Context) {
 		} else {
 			//_, _ = rdsConn.Do("DEL", "data")
 			//_, _ = rdsConn.Do("SET", "name", senderNick)
-			if err := model.MyChatDao.Delete("data");err!=nil{
-				middleware.Logger().Error("delete data from redis failed,",err)
+			if err := model.MyChatDao.Delete("data"); err != nil {
+				middleware.Logger().Error("delete data from redis failed,", err)
 				return
 			}
-			if err := model.MyChatDao.Set("name", senderNick);err != nil{
-				middleware.Logger().Error("set name to redis failed,",err)
+			if err := model.MyChatDao.Set("name", senderNick); err != nil {
+				middleware.Logger().Error("set name to redis failed,", err)
 				return
 			}
 			content = body.Text.Content
@@ -115,4 +101,13 @@ func (d *Dingtalk) DingDing(c *gin.Context) {
 
 		scripts.RunCommand(msg)
 	}
+}
+
+// 加签
+func (d *Dingtalk) signature(ts int64, secret string) string {
+	strToSign := fmt.Sprintf("%d\n%s", ts, secret)
+	hmac256 := hmac.New(sha256.New, []byte(secret))
+	hmac256.Write([]byte(strToSign))
+	data := hmac256.Sum(nil)
+	return base64.StdEncoding.EncodeToString(data)
 }

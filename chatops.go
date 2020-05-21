@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// 程序入口，监听端口
 func main() {
 	fmt.Println(config.Setting.AdapterName)
 	g := gin.Default()
@@ -18,5 +19,5 @@ func main() {
 
 // 处理业务
 func process(c *gin.Context) {
-		adapter.Adapter(c)
+	adapter.Adapter(c)
 }

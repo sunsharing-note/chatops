@@ -50,7 +50,6 @@ func Logger() *logrus.Logger {
 	return logger
 }
 
-
 // 日志记录到文件
 func LoggerToFile() gin.HandlerFunc {
 

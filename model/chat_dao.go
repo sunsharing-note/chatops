@@ -13,7 +13,7 @@ func NewChatDao(pool *redis.Pool)*ChatDao{
 	return &ChatDao{pool:pool}
 }
 
-// Set 设置值
+// Set 将key写入redis
 func (c *ChatDao)Set(key,value string)(err error){
 	conn := c.pool.Get()
 	defer conn.Close()
@@ -23,7 +23,7 @@ func (c *ChatDao)Set(key,value string)(err error){
 	return
 }
 
-// Get 获取值
+// Get 从redis中根据key值获取值
 func (c *ChatDao)Get(key string)(value string,err error){
 	conn := c.pool.Get()
 	defer conn.Close()
@@ -38,12 +38,22 @@ func (c *ChatDao)Get(key string)(value string,err error){
 	}
 }
 
-// Delete 删除值
+// Delete 从redis中删除key
 func (c *ChatDao)Delete(key string)(err error){
 	conn := c.pool.Get()
 	defer conn.Close()
 	if _, err = conn.Do("DEL", key);err != nil{
 		return
+	}
+	return
+}
+
+// 清除数据
+func (c *ChatDao)ClearData(data []string)(err error){
+	for _, v := range data{
+		if err = c.Delete(v);err !=nil{
+			return
+		}
 	}
 	return
 }

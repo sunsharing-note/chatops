@@ -61,3 +61,9 @@ func (h Header) Get(key string) string {
 func (h Header) Set(key, value string) {
 	textproto.MIMEHeader(h).Set(key, value)
 }
+
+func SendMsg(msg *Message,msgType,info string){
+	msg.Header.Set("msgtype",msgType)
+	msg.Body = strings.NewReader(info)
+	OutChan <- msg
+}
